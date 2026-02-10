@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SYSTEM_RECOVERY_2017</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Font Handling for Multi-Language */
+        body {
+            font-family: 'VT323', monospace;
+            overflow: hidden;
+            background-color: #050505;
+            color: #33ff00;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .lang-cjk {
+            font-family: 'Noto Sans KR', 'Noto Sans SC', sans-serif;
+            font-size: 0.9em;
+            letter-spacing: 0px;
+        }
+
+        /* CRT Effects */
+        .crt-overlay {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.97; }
+            5% { opacity: 0.9; }
+            10% { opacity: 0.95; }
+            15% { opacity: 0.85; }
+            20% { opacity: 0.95; }
+            50% { opacity: 1; }
+            100% { opacity: 0.98; }
+        }
+
+        .screen-flicker {
+            animation: flicker 0.15s infinite;
+        }
+
+        /* Glitch Effect */
+        @keyframes glitch-anim {
+            0% { clip-path: inset(40% 0 61% 0); transform: translate(-2px, 2px); }
+            20% { clip-path: inset(92% 0 1% 0); transform: translate(2px, -2px); }
+            40% { clip-path: inset(43% 0 1% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(25% 0 58% 0); transform: translate(2px, -2px); }
+            80% { clip-path: inset(54% 0 7% 0); transform: translate(-2px, 2px); }
+            100% { clip-path: inset(58% 0 43% 0); transform: translate(2px, -2px); }
+        }
+
+        .glitch-active {
+            animation: glitch-anim 0.3s infinite linear alternate-reverse;
+            color: red;
+            text-shadow: 2px 0 blue, -2px 0 red;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #001100; }
+        ::-webkit-scrollbar-thumb { background: #33ff00; }
+        ::-webkit-scrollbar-thumb:hover { background: #55ff55; }
+
+        /* Window Transitions */
+        .window-enter { opacity: 0; transform: scale(0.95); }
+        .window-enter-active { opacity: 1; transform: scale(1); transition: all 0.2s ease-out; }
+        .window-exit { opacity: 1; transform: scale(1); }
+        .window-exit-active { opacity: 0; transform: scale(0.95); transition: all 0.1s ease-in; }
+
+        .desktop-icon:active { transform: scale(0.95); background-color: rgba(51, 255, 0, 0.1); }
+    </style>
+</head>
+<body class="h-screen w-screen relative overflow-hidden text-lg">
+
+    <!-- CRT Overlay -->
+    <div class="crt-overlay fixed inset-0 z-50 pointer-events-none opacity-40"></div>
+    <div id="vignette" class="fixed inset-0 z-40 pointer-events-none opacity-60" style="background: radial-gradient(circle, transparent 60%, black 100%);"></div>
+
+    <!-- Main Game Container -->
+    <div id="game-root" class="w-full h-full relative screen-flicker flex flex-col">
+        
+        <!-- Boot Screen / Main Menu -->
+        <div id="boot-screen" class="absolute inset-0 bg-black z-30 flex flex-col items-center justify-center text-center p-4">
+            <div id="boot-text" class="mb-8 text-green-500 whitespace-pre-wrap">INITIALIZING...</div>
+            <button id="start-btn" class="hidden border-2 border-green-500 px-8 py-2 hover:bg-green-900 hover:text-white transition-colors animate-pulse text-xl tracking-widest">
+                [ START SYSTEM ]
+            </button>
+            <div class="mt-8 text-xs text-gray-600">
+                v.2.0.1.7 | MEM: 64KB OK | CPU: 100%
+            </div>
+            <!-- Language Select for Boot -->
+            <div class="mt-4 flex gap-4 text-sm text-gray-500">
+                <span onclick="setLang('en')" class="cursor-pointer hover:text-green-400">EN</span>
+                <span onclick="setLang('id')" class="cursor-pointer hover:text-green-400">ID</span>
+                <span onclick="setLang('su')" class="cursor-pointer hover:text-green-400">SU</span>
+                <span onclick="setLang('ko')" class="cursor-pointer hover:text-green-400">KO</span>
+                <span onclick="setLang('zh')" class="cursor-pointer hover:text-green-400">ZH</span>
+            </div>
+        </div>
+
+        <!-- Desktop Environment (Hidden by default) -->
+        <div id="desktop" class="flex-1 relative hidden bg-gray-900 bg-opacity-90">
+            <!-- Wallpaper/Background -->
+            <div class="absolute inset-0 opacity-10 pointer-events-none flex items-center justify-center">
+                <svg width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="text-green-700">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+
+            <!-- Icons Grid -->
+            <div id="icon-grid" class="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 content-start">
+                <!-- Icons generated by JS -->
+            </div>
+
+            <!-- Windows Container -->
+            <div id="window-layer" class="absolute inset-0 pointer-events-none flex items-center justify-center p-2 sm:p-10">
+                <!-- Active Windows Injected Here -->
+            </div>
+
+            <!-- Taskbar -->
+            <div class="absolute bottom-0 w-full h-12 bg-black border-t-2 border-green-800 flex items-center justify-between px-4 z-20">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span id="clock" class="text-green-500 font-bold">00:00</span>
+                </div>
+                <div class="text-xs text-green-700">GHOST_OS_v17</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio System (Invisible) -->
+    <div id="audio-subsystem"></div>
+
+<script>
+/**
+ * SYSTEM RECOVERY 2017
+ * Single File Game Engine
+ */
+
+// --- CONFIGURATION & STATE ---
+const STATE = {
+    lang: 'en',
+    booted: false,
+    windows: [], // Array of open app IDs
+    unlocked: {
+        folder_secure: false,
+        ending_triggered: false
+    },
+    volume: 0.5,
+    glitching: false
+};
+
+// --- TRANSLATIONS ---
+const I18N = {
+    en: {
+        boot: "SYSTEM_BOOT_SEQUENCE...\nCHECKING MEMORY... OK\nLOADING KERNEL... OK\nMOUNTING DRIVES... OK\n\nPRESS START TO INITIALIZE",
+        start: "[ ACCESS SYSTEM ]",
+        apps: {
+            notes: "Notes",
+            files: "Files",
+            chat: "Messenger",
+            gallery: "Gallery",
+            settings: "Settings",
+            decrypt: "Decryptor"
+        },
+        ui: {
+            close: "CLOSE",
+            password: "ENTER PASSWORD:",
+            access_denied: "ACCESS DENIED",
+            access_granted: "ACCESS GRANTED",
+            locked: "LOCKED FILE",
+            back: "BACK",
+            lang: "Language",
+            vol: "Sound Volume"
+        },
+        content: {
+            note1_title: "To Do List",
+            note1_body: "- Buy milk\n- Call Sarah (URGENT)\n- The date... I can't forget 10-31.",
+            note2_title: "DONT_READ",
+            note2_body: "I hear them in the wires. The system isn't safe. It watches me.",
+            chat_user: "Sarah",
+            chat_history: [
+                {u: "Me", m: "Where are you?"},
+                {u: "Sarah", m: "I'm close. Look at the photos."},
+                {u: "Me", m: "Please come home."},
+                {u: "Sarah", m: "It's too dark here."}
+            ],
+            file_hint: "Try the date I went missing...",
+            secret_file: "PROJECT GHOST: Subject 2017 has merged with the digital interface. Do not turn off the device."
+        }
+    },
+    id: {
+        boot: "MEMULAI SISTEM...\nMEMERIKSA MEMORI... OKE\nMEMUAT KERNEL... OKE\n\nTEKAN MULAI",
+        start: "[ AKSES SISTEM ]",
+        apps: { notes: "Catatan", files: "Berkas", chat: "Pesan", gallery: "Galeri", settings: "Pengaturan", decrypt: "Dekripsi" },
+        ui: { close: "TUTUP", password: "KATA SANDI:", access_denied: "AKSES DITOLAK", access_granted: "AKSES DITERIMA", locked: "TERKUNCI", back: "KEMBALI", lang: "Bahasa", vol: "Volume Suara" },
+        content: {
+            note1_title: "Daftar Tugas", note1_body: "- Beli susu\n- Telepon Sarah (PENTING)\n- Tanggal itu... 10-31.",
+            note2_title: "JANGAN_BACA", note2_body: "Aku mendengar mereka di kabel. Sistem ini tidak aman. Dia melihatku.",
+            chat_user: "Sarah",
+            chat_history: [{u: "Aku", m: "Kamu dimana?"}, {u: "Sarah", m: "Dekat. Lihat foto-foto."}, {u: "Aku", m: "Pulanglah."}, {u: "Sarah", m: "Terlalu gelap disini."}],
+            file_hint: "Coba tanggal aku menghilang...", secret_file: "PROYEK HANTU: Subjek 2017 telah menyatu dengan antarmuka digital."
+        }
+    },
+    su: {
+        boot: "MIMITIAN SISTEM...\nNGAJUKUT MEMORI... OKE\nNGAMUAT KERNEL... OKE\n\nPENCET MIMITIAN",
+        start: "[ BUKA SISTEM ]",
+        apps: { notes: "Catetan", files: "Arsip", chat: "Pesen", gallery: "Gallerio", settings: "Setélan", decrypt: "Pecah Sandi" },
+        ui: { close: "TUTUP", password: "SANDI:", access_denied: "DITOLAK", access_granted: "DITARIMA", locked: "DIKONCI", back: "BALIK", lang: "Basa", vol: "Sora" },
+        content: {
+            note1_title: "Carita Gawe", note1_body: "- Mésér susu\n- Nelpon Sarah (PENTING)\n- Tanggal éta... 10-31.",
+            note2_title: "ULAH_BACA", note2_body: "Aya sora dina kabel. Sistem ieu teu aman. Manéhna ningali kuring.",
+            chat_user: "Sarah",
+            chat_history: [{u: "Kuring", m: "Dimana anjeun?"}, {u: "Sarah", m: "Caket. Tingali poto."}, {u: "Kuring", m: "Balik atuh."}, {u: "Sarah", m: "Poék pisan didieu."}],
+            file_hint: "Cobi tanggal kuring leungit...", secret_file: "PROYÉK JURIG: Subjék 2017 geus ngahiji jeung digital."
+        }
+    },
+    ko: {
+        boot: "시스템 부팅 중...\n메모리 확인... 완료\n커널 로드 중... 완료\n\n시작하려면 클릭",
+        start: "[ 시스템 접속 ]",
+        apps: { notes: "메모", files: "파일", chat: "메신저", gallery: "갤러리", settings: "설정", decrypt: "복호화" },
+        ui: { close: "닫기", password: "비밀번호:", access_denied: "접근 거부", access_granted: "접근 허용", locked: "잠김", back: "뒤로", lang: "언어", vol: "볼륨" },
+        content: {
+            note1_title: "할 일", note1_body: "- 우유 사기\n- 사라에게 전화 (긴급)\n- 그 날짜... 10-31 잊지말자.",
+            note2_title: "읽지마시오", note2_body: "전선 속에서 소리가 들려. 시스템은 안전하지 않아. 나를 보고 있어.",
+            chat_user: "사라",
+            chat_history: [{u: "나", m: "어디야?"}, {u: "사라", m: "가까워. 사진을 봐."}, {u: "나", m: "제발 돌아와."}, {u: "사라", m: "여긴 너무 어두워."}],
+            file_hint: "내가 사라진 날짜를 입력해...", secret_file: "프로젝트 고스트: 피실험자 2017이 디지털 인터페이스와 융합되었습니다."
+        }
+    },
+    zh: {
+        boot: "系统启动中...\n检查内存... 完成\n加载内核... 完成\n\n按开始键",
+        start: "[ 访问系统 ]",
+        apps: { notes: "备忘录", files: "文件", chat: "通讯录", gallery: "相册", settings: "设置", decrypt: "解密工具" },
+        ui: { close: "关闭", password: "输入密码:", access_denied: "访问被拒绝", access_granted: "访问已允许", locked: "文件已锁定", back: "返回", lang: "语言", vol: "音量" },
+        content: {
+            note1_title: "待办事项", note1_body: "- 买牛奶\n- 给莎拉打电话 (紧急)\n- 那个日期... 10-31.",
+            note2_title: "不要读", note2_body: "我听到电线里的声音。系统不安全。它在看着我。",
+            chat_user: "莎拉",
+            chat_history: [{u: "我", m: "你在哪？"}, {u: "莎拉", m: "很近。看照片。"}, {u: "我", m: "请回来。"}, {u: "莎拉", m: "这里太黑了。"}],
+            file_hint: "试试我失踪的日期...", secret_file: "幽灵计划：受试者2017已与数字接口融合。"
+        }
+    }
+};
+
+// --- AUDIO ENGINE (Synthesizer) ---
+// No external files used. Pure Web Audio API.
+const AUDIO = {
+    ctx: null,
+    init: function() {
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+    },
+    playTone: function(freq, type, duration) {
+        if (!this.ctx || STATE.volume <= 0) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(STATE.volume * 0.1, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+    },
+    playClick: function() { this.playTone(1200, 'square', 0.05); },
+    playError: function() { this.playTone(150, 'sawtooth', 0.3); },
+    playSuccess: function() { 
+        if (!this.ctx) return;
+        this.playTone(800, 'sine', 0.1);
+        setTimeout(() => this.playTone(1200, 'sine', 0.2), 100);
+    },
+    playAmbience: function() {
+        // Low drone loop
+        if (!this.ctx || STATE.volume <= 0) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(50, this.ctx.currentTime);
+        gain.gain.setValueAtTime(STATE.volume * 0.02, this.ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        // Modulate frequency slightly for creepiness
+        setInterval(() => {
+            if(Math.random() > 0.9) osc.frequency.linearRampToValueAtTime(45 + Math.random() * 10, this.ctx.currentTime + 1);
+        }, 2000);
+    },
+    playScare: function() {
+        // Harsh noise
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(100, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(STATE.volume * 0.5, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.5);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.5);
+        // Visual glitch trigger
+        triggerGlitch();
+    }
+};
+
+// --- APP DATA ---
+const APPS = [
+    { id: 'notes', icon: '📝', color: 'text-yellow-400' },
+    { id: 'files', icon: '📁', color: 'text-blue-400' },
+    { id: 'chat', icon: '💬', color: 'text-green-400' },
+    { id: 'gallery', icon: '🖼️', color: 'text-purple-400' },
+    { id: 'decrypt', icon: '🔒', color: 'text-red-500' },
+    { id: 'settings', icon: '⚙️', color: 'text-gray-400' }
+];
+
+// --- CORE FUNCTIONS ---
+
+function setLang(lang) {
+    STATE.lang = lang;
+    document.body.className = (lang === 'ko' || lang === 'zh' || lang === 'su') ? 'lang-cjk text-lg h-screen w-screen relative overflow-hidden bg-black' : 'h-screen w-screen relative overflow-hidden text-lg bg-black';
+    // Refresh UI if booted
+    if (STATE.booted) {
+        renderDesktop();
+        // Update open windows
+        const currentWindows = [...STATE.windows];
+        STATE.windows = [];
+        document.getElementById('window-layer').innerHTML = '';
+        currentWindows.forEach(appId => openWindow(appId));
+    } else {
+        // Update Boot Screen
+        renderBootScreen();
+    }
+}
+
+function getText(keyPath) {
+    const keys = keyPath.split('.');
+    let obj = I18N[STATE.lang];
+    for (let k of keys) {
+        if (obj[k]) obj = obj[k];
+        else return keyPath;
+    }
+    return obj;
+}
+
+function renderBootScreen() {
+    const bootText = document.getElementById('boot-text');
+    const startBtn = document.getElementById('start-btn');
+    bootText.innerText = getText('boot');
+    startBtn.innerText = getText('start');
+    startBtn.classList.remove('hidden');
+    startBtn.onclick = startGame;
+}
+
+function startGame() {
+    AUDIO.init();
+    AUDIO.playSuccess();
+    AUDIO.playAmbience();
+    
+    document.getElementById('boot-screen').style.display = 'none';
+    document.getElementById('desktop').classList.remove('hidden');
+    
+    STATE.booted = true;
+    renderDesktop();
+    updateClock();
+    
+    // Random horror events loop
+    setInterval(randomEvent, 15000);
+}
+
+function updateClock() {
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+    document.getElementById('clock').innerText = timeStr;
+    setTimeout(updateClock, 1000);
+}
+
+function renderDesktop() {
+    const grid = document.getElementById('icon-grid');
+    grid.innerHTML = '';
+    
+    APPS.forEach(app => {
+        const el = document.createElement('div');
+        el.className = 'desktop-icon flex flex-col items-center justify-center p-2 cursor-pointer transition-transform hover:bg-green-900 hover:bg-opacity-30 rounded border border-transparent hover:border-green-800';
+        el.innerHTML = `
+            <div class="text-4xl mb-2 ${app.color}">${app.icon}</div>
+            <div class="text-xs text-center text-green-400 font-bold tracking-wider uppercase">${getText('apps.' + app.id)}</div>
+        `;
+        el.onclick = () => openWindow(app.id);
+        grid.appendChild(el);
+    });
+}
+
+function openWindow(appId) {
+    if (STATE.windows.includes(appId)) return; // Already open
+    AUDIO.playClick();
+    
+    STATE.windows.push(appId);
+    
+    const win = document.createElement('div');
+    win.id = `win-${appId}`;
+    win.className = `absolute bg-black border-2 border-green-600 shadow-[0_0_15px_rgba(0,255,0,0.3)] w-full sm:w-96 md:w-[600px] h-full sm:h-[400px] flex flex-col window-enter pointer-events-auto z-30`;
+    
+    // Window positioning (simple stack)
+    const offset = (STATE.windows.length - 1) * 20;
+    if (window.innerWidth > 640) {
+        win.style.top = `${50 + offset}px`;
+        win.style.left = `${50 + offset}px`;
+    }
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'bg-green-800 text-black px-2 py-1 flex justify-between items-center font-bold cursor-move';
+    header.innerHTML = `
+        <span>${getText('apps.' + appId)}</span>
+        <button class="bg-black text-green-500 px-2 hover:bg-red-900 hover:text-white" onclick="closeWindow('${appId}')">X</button>
+    `;
+    
+    // Body
+    const body = document.createElement('div');
+    body.className = 'flex-1 overflow-auto p-4 text-green-400 font-mono text-sm sm:text-base relative';
+    body.innerHTML = getAppContent(appId);
+
+    win.appendChild(header);
+    win.appendChild(body);
+    document.getElementById('window-layer').appendChild(win);
+    
+    // Add enter active class
+    setTimeout(() => win.classList.add('window-enter-active'), 10);
+}
+
+function closeWindow(appId) {
+    AUDIO.playClick();
+    const win = document.getElementById(`win-${appId}`);
+    if (win) {
+        win.classList.remove('window-enter-active');
+        win.classList.add('window-exit-active');
+        setTimeout(() => {
+            win.remove();
+            STATE.windows = STATE.windows.filter(id => id !== appId);
+        }, 200);
+    }
+}
+
+function getAppContent(appId) {
+    const t = STATE.lang;
+    
+    if (appId === 'notes') {
+        return `
+            <div class="space-y-4">
+                <div class="border border-green-800 p-2">
+                    <h3 class="font-bold underline text-green-300">${getText('content.note1_title')}</h3>
+                    <p class="whitespace-pre-line">${getText('content.note1_body')}</p>
+                </div>
+                <div class="border border-red-900 p-2 bg-red-900 bg-opacity-10">
+                    <h3 class="font-bold underline text-red-500">${getText('content.note2_title')}</h3>
+                    <p class="whitespace-pre-line text-red-400">${getText('content.note2_body')}</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (appId === 'chat') {
+        let chatHtml = `<div class="flex flex-col gap-2">`;
+        const history = getText('content.chat_history');
+        history.forEach(msg => {
+            const isMe = msg.u === "Me" || msg.u === "Aku" || msg.u === "Kuring" || msg.u === "나" || msg.u === "我";
+            chatHtml += `
+                <div class="${isMe ? 'self-end text-right' : 'self-start text-left'} max-w-[80%]">
+                    <span class="text-xs text-gray-500">${msg.u}</span>
+                    <div class="${isMe ? 'border-green-600 text-green-300' : 'border-gray-600 text-gray-400'} border p-2 rounded bg-black">
+                        ${msg.m}
+                    </div>
+                </div>
+            `;
+        });
+        chatHtml += `
+            <div id="new-msg" class="hidden self-start mt-4 animate-pulse text-red-500 border border-red-500 p-2">
+                UNKNOWN: I SEE YOU.
+            </div>
+        </div>`;
+        return chatHtml;
+    }
+
+    if (appId === 'settings') {
+        return `
+            <div class="space-y-4">
+                <div>
+                    <label class="block mb-2 font-bold">[ ${getText('ui.lang')} ]</label>
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="changeSettingsLang('en')" class="border px-2 hover:bg-green-700 ${STATE.lang==='en'?'bg-green-700 text-black':''}">English</button>
+                        <button onclick="changeSettingsLang('id')" class="border px-2 hover:bg-green-700 ${STATE.lang==='id'?'bg-green-700 text-black':''}">Indonesia</button>
+                        <button onclick="changeSettingsLang('su')" class="border px-2 hover:bg-green-700 ${STATE.lang==='su'?'bg-green-700 text-black':''}">Basa Sunda</button>
+                        <button onclick="changeSettingsLang('ko')" class="border px-2 hover:bg-green-700 ${STATE.lang==='ko'?'bg-green-700 text-black':''}">한국어</button>
+                        <button onclick="changeSettingsLang('zh')" class="border px-2 hover:bg-green-700 ${STATE.lang==='zh'?'bg-green-700 text-black':''}">中文</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block mb-2 font-bold">[ ${getText('ui.vol')} ]</label>
+                    <input type="range" min="0" max="1" step="0.1" value="${STATE.volume}" onchange="STATE.volume = this.value" class="w-full accent-green-500">
+                </div>
+                <div class="mt-8 text-xs text-gray-600 border-t border-gray-800 pt-2">
+                    System Build 2017.10.31 <br>
+                    Hardware ID: 666-GHOST
+                </div>
+            </div>
+        `;
+    }
+
+    if (appId === 'files') {
+        return `
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-center group cursor-pointer">
+                    <div class="text-3xl text-yellow-300 group-hover:text-white">📁</div>
+                    <span class="text-xs">System</span>
+                </div>
+                <div class="text-center group cursor-pointer">
+                    <div class="text-3xl text-yellow-300 group-hover:text-white">📁</div>
+                    <span class="text-xs">Logs</span>
+                </div>
+                <div class="text-center group cursor-pointer" onclick="attemptUnlockFile()">
+                    <div class="text-3xl text-red-500 group-hover:text-red-300">📁</div>
+                    <span class="text-xs text-red-500">PRIVATE</span>
+                </div>
+            </div>
+            <div id="file-viewer" class="mt-4 border-t border-green-800 pt-4 hidden">
+                <!-- Content loaded dynamically -->
+            </div>
+        `;
+    }
+    
+    if (appId === 'gallery') {
+        // CSS drawn "Images"
+        return `
+            <div class="grid grid-cols-2 gap-2">
+                <div class="aspect-square bg-gray-800 border border-green-900 flex items-center justify-center overflow-hidden">
+                    <div class="w-10 h-10 rounded-full bg-white blur-sm"></div>
+                </div>
+                <div class="aspect-square bg-gray-900 border border-green-900 flex items-center justify-center overflow-hidden relative">
+                    <div class="absolute w-full h-1 bg-red-900 rotate-45"></div>
+                    <div class="absolute w-full h-1 bg-red-900 -rotate-45"></div>
+                    <span class="text-xs bg-black px-1 z-10">CORRUPT</span>
+                </div>
+                <div class="aspect-square bg-gray-800 border border-green-900 flex items-center justify-center">
+                    <div class="text-4xl">🌲</div>
+                </div>
+                 <div class="aspect-square bg-black border border-red-900 flex items-center justify-center">
+                    <div class="text-red-600 font-bold animate-pulse text-2xl">👀</div>
+                </div>
+            </div>
+        `;
+    }
+
+    if (appId === 'decrypt') {
+        return `
+            <div class="flex flex-col items-center justify-center h-full space-y-4">
+                <div class="text-green-500 animate-pulse text-4xl">🔒</div>
+                <div class="text-center text-sm">${getText('ui.password')}</div>
+                <input type="text" id="pass-input" maxlength="4" class="bg-black border-2 border-green-500 text-center text-2xl p-2 w-32 outline-none focus:border-white text-white font-mono placeholder-gray-700" placeholder="0000">
+                <button onclick="checkPassword()" class="bg-green-900 text-green-100 px-4 py-1 border border-green-500 hover:bg-green-500 hover:text-black transition-colors">DECRYPT</button>
+                <div id="decrypt-status" class="h-6 text-sm font-bold"></div>
+                <div class="text-xs text-gray-500 mt-4">${getText('content.file_hint')}</div>
+            </div>
+        `;
+    }
+
+    return "APP_ERROR_404";
+}
+
+// --- APP SPECIFIC LOGIC ---
+
+function changeSettingsLang(l) {
+    AUDIO.playClick();
+    setLang(l);
+}
+
+function checkPassword() {
+    const input = document.getElementById('pass-input').value;
+    const status = document.getElementById('decrypt-status');
+    
+    // Puzzle Answer: 1031 (Halloween/Date in notes)
+    if (input === '1031') {
+        AUDIO.playSuccess();
+        status.className = "text-green-400";
+        status.innerText = getText('ui.access_granted');
+        STATE.unlocked.folder_secure = true;
+        setTimeout(() => {
+            document.querySelector('#win-decrypt .flex-1').innerHTML = `
+                <div class="p-4 border border-red-500 text-red-500">
+                    <h1 class="text-xl font-bold mb-2">TOP SECRET</h1>
+                    <p>${getText('content.secret_file')}</p>
+                    <br>
+                    <p class="animate-pulse">THEY ARE WATCHING YOU PLAY.</p>
+                </div>
+            `;
+            triggerGlitch();
+        }, 1000);
+    } else {
+        AUDIO.playError();
+        status.className = "text-red-500";
+        status.innerText = getText('ui.access_denied');
+        document.getElementById('pass-input').value = '';
+        triggerGlitch();
+    }
+}
+
+function attemptUnlockFile() {
+    if (STATE.unlocked.folder_secure) {
+        // Logic handled in Decrypt app mainly, but this could open a viewer
+        alert("FILE MOVED TO DECRYPTOR TOOL");
+    } else {
+        AUDIO.playError();
+        const viewer = document.getElementById('file-viewer');
+        viewer.classList.remove('hidden');
+        viewer.innerHTML = `<span class="text-red-500 font-bold blink">[ ${getText('ui.locked')} ]</span> <br> USE DECRYPT TOOL`;
+    }
+}
+
+// --- HORROR ENGINE ---
+
+function triggerGlitch() {
+    if (STATE.glitching) return;
+    STATE.glitching = true;
+    
+    const root = document.getElementById('game-root');
+    root.classList.add('glitch-active');
+    document.body.style.transform = `translateX(${Math.random()*4 - 2}px)`;
+    
+    setTimeout(() => {
+        root.classList.remove('glitch-active');
+        document.body.style.transform = 'none';
+        STATE.glitching = false;
+    }, 400);
+}
+
+function randomEvent() {
+    if (!STATE.booted) return;
+    const r = Math.random();
+    
+    if (r > 0.85) {
+        // Random sound
+        AUDIO.playTone(50 + Math.random() * 100, 'sawtooth', 0.5);
+    } 
+    else if (r > 0.95) {
+        // Chat message pop
+        if (document.getElementById('new-msg')) {
+            document.getElementById('new-msg').classList.remove('hidden');
+            AUDIO.playScare();
+        }
+    }
+}
+
+// Init
+window.onload = function() {
+    renderBootScreen();
+};
+
+</script>
+</body>
+</html>
