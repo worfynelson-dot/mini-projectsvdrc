@@ -1,0 +1,411 @@
+
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Life RPG — Text/2D Hybrid (Single File)</title>
+  <style>
+    :root{--bg:#0f172a;--panel:#0b1220;--accent:#7dd3fc;--muted:#94a3b8;--card:#111827}
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#021428 0%, #061025 100%);color:#e6eef6}
+    .app{display:flex;gap:10px;padding:12px;height:100vh}
+    /* Responsive: stack on small screens */
+    @media(max-width:900px){.app{flex-direction:column;padding:8px;height:100vh}}
+
+    .left, .right{background:rgba(255,255,255,0.02);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    .left{flex:2;display:flex;flex-direction:column;gap:8px}
+    .right{flex:1;display:flex;flex-direction:column;gap:8px;min-width:260px}
+
+    .panel{background:rgba(255,255,255,0.03);padding:10px;border-radius:10px}
+    .title{font-weight:700;font-size:18px;color:var(--accent)}
+
+    #map{min-height:240px;border-radius:8px;padding:10px;background:linear-gradient(180deg, rgba(13,18,30,0.6), rgba(10,14,22,0.5))}
+    .actions{display:flex;flex-wrap:wrap;gap:8px}
+    .btn{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.03);padding:8px 10px;border-radius:8px;cursor:pointer;user-select:none}
+    .btn:active{transform:translateY(1px)}
+
+    .stat{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .statbar{height:10px;background:rgba(255,255,255,0.06);border-radius:6px;overflow:hidden;flex:1;margin-left:8px}
+    .barinner{height:100%;background:linear-gradient(90deg,#34d399,#06b6d4)}
+
+    .inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .inv-slot{background:rgba(255,255,255,0.02);padding:8px;border-radius:6px;text-align:center;min-height:46px}
+
+    #log{height:120px;overflow:auto;background:rgba(0,0,0,0.12);padding:8px;border-radius:6px}
+
+    .row{display:flex;gap:8px;align-items:center}
+    .flex{flex:1}
+
+    footer.small{font-size:12px;color:var(--muted);text-align:center}
+
+    /* Mobile touch controls */
+    .touch-bar{display:none;gap:8px;justify-content:center}
+    @media(max-width:900px){.touch-bar{display:flex}}
+
+    /* achievement badge */
+    .badge{display:inline-block;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.03);font-weight:600}
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="left">
+      <div class="panel">
+        <div class="title">Life RPG — Dunia Mini</div>
+        <div class="row" style="margin-top:8px;gap:12px;align-items:flex-start">
+          <div style="flex:1">
+            <div id="map" aria-live="polite">
+              <strong>Lokasi:</strong> <span id="locationName">Kampung</span>
+              <div id="locationDesc" style="margin-top:8px;color:var(--muted)">Tempat sederhana untuk belajar dan bekerja.</div>
+            </div>
+
+            <div style="margin-top:8px" class="actions">
+              <button class="btn" id="exploreBtn">Jelajah 🧭</button>
+              <button class="btn" id="workBtn">Kerja 💼</button>
+              <button class="btn" id="restBtn">Istirahat 🛌</button>
+              <button class="btn" id="shopBtn">Toko 🛒</button>
+              <button class="btn" id="craftBtn">Craft 🛠️</button>
+              <button class="btn" id="questsBtn">Misi 📜</button>
+              <button class="btn" id="fightBtn">Hadapi musuh ⚔️</button>
+              <button class="btn" id="saveBtn">Simpan 💾</button>
+              <button class="btn" id="loadBtn">Muat ⤴️</button>
+            </div>
+          </div>
+
+          <div style="width:200px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>Uang</strong></div>
+              <div id="coins" style="font-weight:800">0</div>
+            </div>
+            <div style="margin-top:10px">
+              <div class="stat"><div>HP</div><div class="statbar"><div id="hpBar" class="barinner" style="width:100%"></div></div><div id="hpVal">100</div></div>
+              <div class="stat"><div>Energy</div><div class="statbar"><div id="enBar" class="barinner" style="width:100%"></div></div><div id="enVal">100</div></div>
+              <div class="stat"><div>Hunger</div><div class="statbar"><div id="hunBar" class="barinner" style="width:100%"></div></div><div id="hunVal">0</div></div>
+              <div class="stat"><div>Mood</div><div class="statbar"><div id="moodBar" class="barinner" style="width:80%"></div></div><div id="moodVal">80</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="display:flex;gap:12px;align-items:flex-start">
+        <div style="flex:1">
+          <div class="title">Inventori</div>
+          <div class="inv-grid" id="inventory"></div>
+        </div>
+        <div style="width:200px">
+          <div class="title">Status & Level</div>
+          <div style="margin-top:8px">Level <strong id="level">1</strong> | EXP <span id="exp">0</span>/<span id="expToLevel">100</span></div>
+          <div style="margin-top:8px">Skill Points: <strong id="skillPoints">0</strong></div>
+          <div style="margin-top:12px"><div class="title">Achievements</div><div id="achievements" style="margin-top:8px;color:var(--muted)">-</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="title">Log</div>
+        <div id="log"></div>
+      </div>
+
+      <div class="touch-bar">
+        <button class="btn" id="touchExplore">Jelajah</button>
+        <button class="btn" id="touchWork">Kerja</button>
+        <button class="btn" id="touchRest">Istirahat</button>
+      </div>
+
+      <div style="margin-top:auto" class="panel">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <div class="small muted">Tip: Gunakan tombol untuk aksi cepat. Tekan huruf E (Explore), W (Work), R (Rest), F (Fight).</div>
+          <div><button class="btn" id="resetBtn">Reset Permainan</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="panel">
+        <div class="title">Toko & Craft</div>
+        <div style="margin-top:8px">
+          <div><strong>Shop Items</strong></div>
+          <div id="shopList" style="margin-top:8px"></div>
+        </div>
+        <hr style="opacity:0.06;margin:10px 0">
+        <div>
+          <div><strong>Crafting</strong></div>
+          <div id="recipes" style="margin-top:8px;color:var(--muted)"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="title">Misi Aktif</div>
+        <div id="activeQuests" style="margin-top:8px;color:var(--muted)">Tidak ada misi aktif.</div>
+      </div>
+
+      <div class="panel">
+        <div class="title">Pengaturan</div>
+        <div style="margin-top:8px">
+          <label><input type="checkbox" id="soundToggle" checked> Suara</label><br>
+          <label><input type="checkbox" id="autoTick"> Auto Tick (otomatis maju waktu)</label><br>
+          <label>Tick Speed: <select id="tickSpeed"><option value="1">Normal</option><option value="0.5">Cepat</option><option value="2">Lambat</option></select></label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="title">Stats Debug</div>
+        <pre id="debug" style="white-space:pre-wrap;color:var(--muted)"></pre>
+      </div>
+
+      <div class="panel small">
+        <div class="title">Panduan Singkat</div>
+        <div style="margin-top:8px;color:var(--muted)">Jelajah untuk menemukan item, kerja untuk dapat koin, craft barang, ambil misi, dan tingkatkan skill. Simpan progress kapan saja.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Game state
+    const defaultState = {
+      coins: 50,
+      hp: 100, energy: 100, hunger: 0, mood: 80,
+      level:1, exp:0, expToLevel:100, skillPoints:0,
+      time:8, // hour 0-23
+      location: 'Kampung',
+      inventory: [ {id:'apple',name:'Apple',qty:2}, {id:'wood',name:'Wood',qty:1} ],
+      quests: [], achievements: [],
+      skills: {combat:1,craft:1,work:1,explore:1},
+      autosave:false
+    }
+
+    let state = loadState() || defaultState;
+
+    // Some simple data
+    const shops = [
+      {id:'apple', name:'Apple', price:5, desc:'Makan untuk mengurangi lapar'},
+      {id:'bandage', name:'Bandage', price:20, desc:'Pulihkan HP sedikit'},
+      {id:'wood', name:'Wood', price:8, desc:'Bahan craft'},
+      {id:'sword', name:'Sword', price:120, desc:'Tingkatkan serangan di combat'}
+    ];
+
+    const recipes = [
+      {id:'campfire', name:'Campfire', requires:[{id:'wood',qty:2}], result:{id:'campfire',name:'Campfire',qty:1}},
+      {id:'fruit_salad', name:'Fruit Salad', requires:[{id:'apple',qty:2}], result:{id:'fruit_salad',name:'Fruit Salad',qty:1}}
+    ];
+
+    const locations = [
+      {id:'kampung', name:'Kampung', desc:'Tempat sederhana, aman, dan tenang.', exploreChance:0.2, items:[{id:'apple',prob:0.6},{id:'wood',prob:0.4}]},
+      {id:'hutan', name:'Hutan', desc:'Ada banyak sumber daya, tapi juga berbahaya.', exploreChance:0.6, items:[{id:'wood',prob:0.9},{id:'apple',prob:0.2}], danger:0.2},
+      {id:'kota', name:'Kota', desc:'Toko dan pekerjaan lebih banyak di sini.', exploreChance:0.4, items:[{id:'coin',prob:0.5}], jobs:true}
+    ];
+
+    const enemies = [
+      {id:'rat',name:'Rat',hp:20,atk:4,exp:10,coins:5},
+      {id:'bandit',name:'Bandit',hp:60,atk:12,exp:40,coins:30}
+    ];
+
+    // DOM refs
+    const el = id => document.getElementById(id);
+    const logEl = el('log');
+
+    // Utility
+    function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+    function pickByProb(list){
+      const r=Math.random(); let acc=0; for(const it of list){acc+=it.prob; if(r<=acc) return it.id}
+      return list[Math.floor(Math.random()*list.length)].id
+    }
+    function findInv(id){return state.inventory.find(i=>i.id===id)}
+    function addItem(item,qty=1){let found=findInv(item.id); if(found){found.qty+=qty}else state.inventory.push({...item,qty})}
+    function removeItem(id,qty=1){let it=findInv(id); if(!it) return false; it.qty-=qty; if(it.qty<=0) state.inventory = state.inventory.filter(x=>x.id!==id); return true}
+    function addLog(text){const p=document.createElement('div');p.textContent=text;logEl.prepend(p)}
+
+    // Core features implementations:
+    function render(){
+      el('coins').textContent = state.coins;
+      el('hpVal').textContent = Math.max(0,Math.round(state.hp)); el('hpBar').style.width = Math.max(0,Math.min(100,state.hp))+'%';
+      el('enVal').textContent = Math.round(state.energy); el('enBar').style.width = Math.max(0,Math.min(100,state.energy))+'%';
+      el('hunVal').textContent = Math.round(state.hunger); el('hunBar').style.width = Math.max(0,Math.min(100,100-state.hunger))+'%';
+      el('moodVal').textContent = Math.round(state.mood); el('moodBar').style.width = Math.max(0,Math.min(100,state.mood))+'%';
+      el('level').textContent = state.level; el('exp').textContent = state.exp; el('expToLevel').textContent = state.expToLevel; el('skillPoints').textContent = state.skillPoints;
+      el('locationName').textContent = state.location;
+      // Inventory
+      const inv = el('inventory'); inv.innerHTML = '';
+      for(let i=0;i<8;i++){
+        const slot = document.createElement('div'); slot.className='inv-slot';
+        const item = state.inventory[i]; if(item){
+          slot.innerHTML = `<div style="font-weight:700">${item.name}</div><div>×${item.qty}</div>`;
+          slot.onclick = ()=>{addLog('View: '+item.name)}
+        } else slot.textContent='-';
+        inv.appendChild(slot);
+      }
+
+      // shop list
+      const shopList = el('shopList'); shopList.innerHTML=''; shops.forEach(s=>{
+        const d=document.createElement('div'); d.style.display='flex'; d.style.justifyContent='space-between'; d.style.marginBottom='6px';
+        d.innerHTML = `<div><strong>${s.name}</strong><div style='color:var(--muted)'>${s.desc}</div></div><div style='text-align:right'><div>${s.price}¢</div><button class='btn' onclick="buyItem('${s.id}')">Beli</button></div>`;
+        shopList.appendChild(d);
+      })
+
+      // recipes
+      const rc = el('recipes'); rc.innerHTML=''; recipes.forEach(r=>{
+        const ok = r.requires.every(req => { const it = findInv(req.id); return it && it.qty>=req.qty })
+        const btn = `<button class='btn' onclick="craft('${r.id}')" ${ok? '':'disabled'}>${ok? 'Craft':'Butuh bahan'}</button>`
+        rc.innerHTML += `<div style='display:flex;justify-content:space-between;margin-bottom:6px'><div><strong>${r.name}</strong><div style='color:var(--muted)'>${r.requires.map(x=>x.qty+'x '+x.id).join(', ')}</div></div><div>${btn}</div></div>`
+      })
+
+      // quests
+      el('activeQuests').innerHTML = state.quests.length ? state.quests.map(q=>`<div><strong>${q.name}</strong> - ${q.desc}</div>`).join('') : 'Tidak ada misi aktif.';
+
+      // achievements
+      el('achievements').innerHTML = state.achievements.length ? state.achievements.map(a=>`<span class='badge'>${a}</span>`).join(' ') : '-';
+
+      el('debug').textContent = JSON.stringify(state, null, 2).slice(0,800);
+    }
+
+    // Actions
+    function explore(){
+      tick(1);
+      addLog('Lo mulai menjelajah...');
+      // choose location
+      const loc = locations[rand(0,locations.length-1)];
+      el('locationName').textContent = loc.name;
+      el('locationDesc').textContent = loc.desc;
+      // chance to find item
+      if(Math.random() < loc.exploreChance){
+        const itemId = pickByProb(loc.items);
+        const shopItem = shops.find(s=>s.id===itemId);
+        if(itemId==='coin'){ const c = rand(5,30); state.coins+=c; addLog('Menemukan koin: +'+c); }
+        else if(shopItem){ addItem({id:shopItem.id,name:shopItem.name},1); addLog('Menemukan: '+shopItem.name) }
+        else addLog('Menemukan sesuatu, tapi tidak berguna.');
+      } else addLog('Tidak menemukan apa-apa kali ini.');
+      // possible danger
+      if(loc.danger && Math.random()<loc.danger){ encounterEnemy(); }
+      state.location = loc.name;
+      state.energy = Math.max(0,state.energy-10);
+      state.hunger = Math.min(100,state.hunger+8);
+      gainExp(5 + state.skills.explore);
+      checkAchievements(); render();
+    }
+
+    function work(){
+      tick(2);
+      addLog('Lo mulai kerja...');
+      // simple jobs
+      const pay = 10 + state.skills.work*5 + rand(0,10);
+      state.coins += pay;
+      state.energy = Math.max(0, state.energy-15);
+      state.hunger = Math.min(100, state.hunger+12);
+      addLog('Selesai kerja: +'+pay+'¢');
+      gainExp(8);
+      render(); checkAchievements();
+    }
+
+    function rest(){
+      tick(1);
+      addLog('Beristirahat...');
+      state.energy = Math.min(100, state.energy+30);
+      state.hp = Math.min(100, state.hp+10);
+      state.hunger = Math.max(0, state.hunger-5);
+      state.mood = Math.min(100, state.mood+10);
+      gainExp(2);
+      render();
+    }
+
+    function buyItem(id){
+      const s = shops.find(x=>x.id===id); if(!s) return;
+      if(state.coins < s.price){ addLog('Uang tidak cukup!'); return }
+      state.coins -= s.price; addItem({id:s.id,name:s.name},1); addLog('Membeli: '+s.name);
+      render(); checkAchievements();
+    }
+
+    function craft(rid){
+      const r = recipes.find(x=>x.id===rid); if(!r) return;
+      const ok = r.requires.every(req=>{ const it=findInv(req.id); return it && it.qty>=req.qty });
+      if(!ok){ addLog('Bahan kurang!'); return }
+      // remove materials
+      r.requires.forEach(req=>removeItem(req.id,req.qty));
+      addItem(r.result, r.result.qty);
+      addLog('Berhasil craft: '+r.name);
+      gainExp(12 + state.skills.craft*3);
+      render();
+    }
+
+    function encounterEnemy(){
+      const e = enemies[rand(0,enemies.length-1)];
+      addLog('Berjumpa: '+e.name+'!');
+      // simple combat minigame
+      const playerAtk = 8 + state.skills.combat*3 + (findInv('sword')?10:0);
+      let enemyHp = e.hp;
+      // turn-based minimal
+      while(enemyHp>0 && state.hp>0){
+        enemyHp -= playerAtk + rand(-2,4);
+        if(enemyHp>0){ state.hp -= e.atk + rand(-3,3); }
+      }
+      if(state.hp<=0){ addLog('Kalah... bangun dengan sedikit HP.'); state.hp = 20; state.coins = Math.max(0, state.coins - 10); }
+      else { addLog('Menang! Dapat '+e.coins+'¢ dan '+e.exp+' EXP.'); state.coins += e.coins; gainExp(e.exp); }
+      render(); checkAchievements();
+    }
+
+    function fight(){ tick(1); encounterEnemy(); }
+
+    function gainExp(amount){ state.exp += amount; while(state.exp >= state.expToLevel){ state.exp -= state.expToLevel; state.level++; state.skillPoints++; state.expToLevel = Math.floor(state.expToLevel*1.4); addLog('Level up! Sekarang level '+state.level) }}
+
+    function tick(hours=1){
+      state.time = (state.time + hours) % 24;
+      // day/night effects
+      if(state.time>=22 || state.time<6) state.mood = Math.max(0,state.mood-2*hours);
+      else state.mood = Math.min(100,state.mood+1*hours);
+
+      // hunger drains over time
+      state.hunger = Math.min(100,state.hunger + 2*hours);
+      if(state.hunger>80) { state.energy = Math.max(0,state.energy-5*hours); state.hp = Math.max(0,state.hp-3*hours) }
+
+      if(el('autoTick').checked){ saveState(); }
+    }
+
+    // Quests simple
+    function addQuest(q){ state.quests.push(q); addLog('Misi baru: '+q.name); render(); }
+    function completeQuest(index){ const q = state.quests.splice(index,1)[0]; state.coins += q.reward.coins; gainExp(q.reward.exp); addLog('Misi selesai: '+q.name); render(); }
+
+    // Achievements
+    function checkAchievements(){
+      if(state.coins>=500 && !state.achievements.includes('Jutawan Kecil')){ state.achievements.push('Jutawan Kecil'); addLog('Achievement unlocked: Jutawan Kecil!') }
+      if(state.level>=5 && !state.achievements.includes('Naik Level 5')){ state.achievements.push('Naik Level 5'); addLog('Achievement unlocked: Naik Level 5!') }
+    }
+
+    // Save & Load
+    function saveState(){ localStorage.setItem('life_rpg_save', JSON.stringify(state)); addLog('Progress disimpan.'); }
+    function loadStatePrompt(){ const s = localStorage.getItem('life_rpg_save'); if(!s){ addLog('Tidak ada simpanan.'); return } state = JSON.parse(s); addLog('Progress dimuat.'); render(); }
+    function loadState(){ try{ const s = localStorage.getItem('life_rpg_save'); return s ? JSON.parse(s): null } catch(e){return null} }
+    function resetGame(){ if(confirm('Reset permainan?')){ state = JSON.parse(JSON.stringify(defaultState)); saveState(); render(); addLog('Game direset.'); }}
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e=>{
+      if(e.key.toLowerCase()==='e') explore();
+      if(e.key.toLowerCase()==='w') work();
+      if(e.key.toLowerCase()==='r') rest();
+      if(e.key.toLowerCase()==='f') fight();
+    })
+
+    // Button binds
+    el('exploreBtn').onclick = explore; el('workBtn').onclick = work; el('restBtn').onclick = rest; el('shopBtn').onclick = ()=>{addLog('Buka toko.')} ; el('saveBtn').onclick = saveState; el('loadBtn').onclick = loadStatePrompt; el('craftBtn').onclick = ()=>{addLog('Buka crafting.')} ; el('questsBtn').onclick = ()=>{ addQuest({name:'Kumpulkan 3 Apple', desc:'Cari buah untuk warga', reward:{coins:40,exp:30}, objective:{id:'apple',qty:3}}); render(); };
+    el('fightBtn').onclick = fight; el('resetBtn').onclick = resetGame;
+    el('touchExplore').onclick = explore; el('touchWork').onclick = work; el('touchRest').onclick = rest;
+
+    // buyItem is called from dynamic HTML; expose globally
+    window.buyItem = buyItem; window.craft = craft; window.encounterEnemy = encounterEnemy;
+
+    // small auto tick mechanic
+    let tickInterval = null;
+    function startAutoTick(){ if(tickInterval) clearInterval(tickInterval); if(el('autoTick').checked){ const speed = parseFloat(el('tickSpeed').value); tickInterval = setInterval(()=>{ tick(1); render(); }, 3000 * speed) }}
+    el('autoTick').addEventListener('change', startAutoTick); el('tickSpeed').addEventListener('change', startAutoTick);
+
+    // initial quests/intro
+    addLog('Selamat datang di Life RPG — versi ringan!'); addLog('Gunakan tombol untuk mulai: Jelajah, Kerja, Istirahat.');
+    render(); startAutoTick();
+
+    // expose quick debug functions for advanced use (developer mode)
+    window._STATE = state;
+
+    // when loading, try to auto-load saved
+    (function tryAutoLoad(){ const s = loadState(); if(s){ state = s; addLog('Auto-muat simpanan.'); render(); } })();
+
+  </script>
+</body>
+</html>
