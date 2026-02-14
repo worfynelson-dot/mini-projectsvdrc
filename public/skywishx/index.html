@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkyWishX — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0d1117;
+  --bg2:      #161b22;
+  --bg3:      #21262d;
+  --border:   #30363d;
+  --text:     #e6edf3;
+  --text2:    #8b949e;
+  --blue:     #58a6ff;
+  --green:    #3fb950;
+  --red:      #f85149;
+  --yellow:   #d29922;
+  --purple:   #bc8cff;
+  --pink:     #ff7b72;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+/* ── Login Screen ── */
+#login-screen {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 50% 0%, #1a2744 0%, #0d1117 60%);
+}
+
+.login-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 100%; max-width: 420px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+}
+
+.login-logo {
+  font-size: 32px; font-weight: 800;
+  text-align: center; margin-bottom: 6px;
+  background: linear-gradient(135deg, #58a6ff, #bc8cff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.login-sub {
+  text-align: center; color: var(--text2);
+  font-size: 13px; margin-bottom: 36px;
+}
+
+.login-label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--text2); text-transform: uppercase;
+  letter-spacing: 0.6px; margin-bottom: 8px;
+}
+
+.login-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 15px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 20px;
+}
+
+.login-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(88,166,255,0.15);
+}
+
+.login-btn {
+  width: 100%;
+  background: var(--blue);
+  border: none; border-radius: 8px;
+  color: #0d1117; font-size: 15px;
+  font-weight: 700; font-family: 'Inter', sans-serif;
+  padding: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.login-btn:hover { background: #79b8ff; transform: translateY(-1px); }
+
+.login-error {
+  background: rgba(248,81,73,0.12);
+  border: 1px solid rgba(248,81,73,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px; color: var(--red);
+  margin-top: 14px; display: none;
+}
+
+/* ── Dashboard ── */
+#dashboard { display: none; }
+
+.top-bar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+
+.brand { font-size: 18px; font-weight: 800; color: var(--blue); }
+.brand span { color: var(--text2); font-weight: 400; font-size: 13px; margin-left: 8px; }
+
+.top-actions { display: flex; gap: 10px; align-items: center; }
+
+.btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text); font-size: 13px;
+  font-weight: 600; font-family: 'Inter', sans-serif;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.btn:hover { background: #2d333b; border-color: #6e7681; }
+.btn--primary { background: var(--blue); border-color: var(--blue); color: #0d1117; }
+.btn--primary:hover { background: #79b8ff; }
+.btn--danger { background: rgba(248,81,73,0.12); border-color: rgba(248,81,73,0.3); color: var(--red); }
+.btn--danger:hover { background: rgba(248,81,73,0.2); }
+.btn--success { background: rgba(63,185,80,0.12); border-color: rgba(63,185,80,0.3); color: var(--green); }
+.btn--success:hover { background: rgba(63,185,80,0.2); }
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  padding: 24px 28px;
+}
+
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.stat-card-label { font-size: 12px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.stat-card-num   { font-size: 28px; font-weight: 800; color: var(--text); }
+.stat-card-sub   { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+.main-content { padding: 0 28px 40px; }
+
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+}
+
+.section-title { font-size: 16px; font-weight: 700; color: var(--text); }
+
+.filters {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+}
+
+.filter-input {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 13px; font-family: 'Inter', sans-serif;
+  color: var(--text); outline: none;
+  transition: border-color 0.2s;
+}
+
+.filter-input:focus { border-color: var(--blue); }
+
+.filter-select {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 13px; font-family: 'Inter', sans-serif;
+  color: var(--text); outline: none; cursor: pointer;
+}
+
+/* ── Table ── */
+.table-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  background: var(--bg3);
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px; font-weight: 700;
+  color: var(--text2); text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(88,166,255,0.04); }
+
+tbody td {
+  padding: 12px 16px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.td-id   { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text2); }
+.td-text { max-width: 280px; color: var(--text); line-height: 1.5; }
+.td-nick { font-weight: 600; white-space: nowrap; }
+.td-cat  { white-space: nowrap; }
+.td-date { font-size: 12px; color: var(--text2); white-space: nowrap; }
+.td-actions { white-space: nowrap; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge--wish   { background: rgba(255,213,79,0.15);  color: #ffd54f; }
+.badge--love   { background: rgba(244,143,177,0.15); color: #f48fb1; }
+.badge--dream  { background: rgba(206,147,216,0.15); color: #ce93d8; }
+.badge--prayer { background: rgba(63,185,80,0.15);   color: #3fb950; }
+.badge--random { background: rgba(88,166,255,0.15);  color: #58a6ff; }
+
+.color-dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.table-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text2);
+  font-size: 14px;
+}
+
+/* ── Edit Modal ── */
+#edit-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+
+#edit-modal.open { display: flex; }
+
+.edit-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 28px 24px;
+  width: 100%; max-width: 560px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+  max-height: 90vh; overflow-y: auto;
+}
+
+.edit-title {
+  font-size: 18px; font-weight: 700;
+  margin-bottom: 22px;
+  color: var(--text);
+}
+
+.edit-field { margin-bottom: 18px; }
+
+.edit-label {
+  display: block;
+  font-size: 12px; font-weight: 600;
+  color: var(--text2); text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 7px;
+}
+
+.edit-input, .edit-select, .edit-textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px; font-family: 'Inter', sans-serif;
+  color: var(--text); outline: none;
+  transition: border-color 0.2s;
+}
+
+.edit-input:focus, .edit-select:focus, .edit-textarea:focus {
+  border-color: var(--blue);
+}
+
+.edit-textarea { resize: vertical; min-height: 80px; }
+
+.edit-actions {
+  display: flex; gap: 10px; justify-content: flex-end;
+  margin-top: 22px;
+}
+
+/* ── Add Message Modal ── */
+#add-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+#add-modal.open { display: flex; }
+
+/* ── Toast ── */
+#admin-toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  z-index: 2000;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.a-toast {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 13px; font-weight: 600;
+  color: var(--text);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  opacity: 0; transform: translateY(8px);
+  transition: all 0.3s; pointer-events: none;
+}
+
+.a-toast.show { opacity: 1; transform: translateY(0); }
+.a-toast.ok   { border-left: 3px solid var(--green); }
+.a-toast.err  { border-left: 3px solid var(--red); }
+.a-toast.info { border-left: 3px solid var(--blue); }
+
+/* ── Confirm Dialog ── */
+#confirm-dialog {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+  display: none;
+  align-items: center; justify-content: center;
+}
+#confirm-dialog.open { display: flex; }
+.confirm-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 28px 22px;
+  max-width: 380px; width: 100%;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+}
+.confirm-icon  { font-size: 36px; margin-bottom: 12px; }
+.confirm-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.confirm-sub   { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+.confirm-btns  { display: flex; gap: 10px; justify-content: center; }
+
+@media (max-width: 600px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); padding: 16px; }
+  .main-content { padding: 0 16px 40px; }
+  .top-bar { padding: 12px 16px; }
+  table { font-size: 12px; }
+  thead th, tbody td { padding: 10px 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ LOGIN ════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">SkyWishX</div>
+    <div class="login-sub">🔒 Admin Panel — Restricted Access</div>
+
+    <label class="login-label">Admin Password</label>
+    <input type="password" class="login-input" id="pw-input"
+           placeholder="Enter admin password" autocomplete="current-password">
+
+    <button class="login-btn" id="login-btn">Access Dashboard →</button>
+    <div class="login-error" id="login-err">❌ Wrong password. Access denied.</div>
+  </div>
+</div>
+
+<!-- ════════ DASHBOARD ════════ -->
+<div id="dashboard">
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div>
+      <span class="brand">SkyWishX Admin <span>vdrc20.vercel.app</span></span>
+    </div>
+    <div class="top-actions">
+      <button class="btn btn--success" id="btn-add-msg">＋ Add Message</button>
+      <button class="btn btn--primary" id="btn-refresh">↺ Refresh</button>
+      <button class="btn" id="btn-logout">Logout</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-card-label">Total Messages</div>
+      <div class="stat-card-num" id="s-total">—</div>
+      <div class="stat-card-sub">all time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Today</div>
+      <div class="stat-card-num" id="s-today">—</div>
+      <div class="stat-card-sub">last 24h</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Total Likes</div>
+      <div class="stat-card-num" id="s-likes">—</div>
+      <div class="stat-card-sub">across all messages</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Languages</div>
+      <div class="stat-card-num" id="s-langs">—</div>
+      <div class="stat-card-sub">unique</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Last Message</div>
+      <div class="stat-card-num" id="s-last" style="font-size:14px; padding-top:4px">—</div>
+      <div class="stat-card-sub">most recent</div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="main-content">
+    <div class="section-header">
+      <div class="section-title">📋 All Messages</div>
+      <div class="filters">
+        <input class="filter-input" id="f-search" placeholder="🔍 Search..." style="width:180px">
+        <select class="filter-select" id="f-cat">
+          <option value="all">All Categories</option>
+          <option value="wish">🌟 Wish</option>
+          <option value="love">💕 Love</option>
+          <option value="dream">🌙 Dream</option>
+          <option value="prayer">🙏 Prayer</option>
+          <option value="random">✨ Random</option>
+        </select>
+        <select class="filter-select" id="f-lang">
+          <option value="all">All Languages</option>
+          <option value="id">🇮🇩 ID</option>
+          <option value="en">🇺🇸 EN</option>
+          <option value="jp">🇯🇵 JP</option>
+          <option value="kr">🇰🇷 KR</option>
+          <option value="fr">🇫🇷 FR</option>
+          <option value="es">🇪🇸 ES</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nickname</th>
+            <th>Message</th>
+            <th>Category</th>
+            <th>Color</th>
+            <th>Lang</th>
+            <th>Likes</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="msg-tbody">
+          <tr><td colspan="9" class="table-empty">Loading messages...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ EDIT MODAL ════════ -->
+<div id="edit-modal">
+  <div class="edit-card">
+    <div class="edit-title">✏️ Edit Message</div>
+
+    <div class="edit-field">
+      <label class="edit-label">Nickname</label>
+      <input class="edit-input" id="e-nick" maxlength="30">
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Message Text</label>
+      <textarea class="edit-textarea" id="e-text" maxlength="280"></textarea>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Category</label>
+      <select class="edit-select" id="e-cat">
+        <option value="wish">🌟 Wish</option>
+        <option value="love">💕 Love</option>
+        <option value="dream">🌙 Dream</option>
+        <option value="prayer">🙏 Prayer</option>
+        <option value="random">✨ Random</option>
+      </select>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Color</label>
+      <select class="edit-select" id="e-color">
+        <option value="blue">🔵 Blue</option>
+        <option value="pink">🩷 Pink</option>
+        <option value="purple">🟣 Purple</option>
+        <option value="gold">🟡 Gold</option>
+        <option value="teal">🩵 Teal</option>
+      </select>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Language</label>
+      <select class="edit-select" id="e-lang">
+        <option value="id">🇮🇩 Bahasa Indonesia</option>
+        <option value="en">🇺🇸 English</option>
+        <option value="jp">🇯🇵 Japanese</option>
+        <option value="kr">🇰🇷 Korean</option>
+        <option value="fr">🇫🇷 French</option>
+        <option value="es">🇪🇸 Spanish</option>
+      </select>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Date & Time (timestamp override)</label>
+      <input class="edit-input" type="datetime-local" id="e-date">
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Likes Count</label>
+      <input class="edit-input" type="number" id="e-likes" min="0">
+    </div>
+
+    <div class="edit-actions">
+      <button class="btn" id="edit-cancel">Cancel</button>
+      <button class="btn btn--primary" id="edit-save">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ ADD MESSAGE MODAL ════════ -->
+<div id="add-modal">
+  <div class="edit-card">
+    <div class="edit-title">➕ Add Message (Admin)</div>
+
+    <div class="edit-field">
+      <label class="edit-label">Nickname</label>
+      <input class="edit-input" id="a-nick" maxlength="30" placeholder="Nickname">
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Message Text</label>
+      <textarea class="edit-textarea" id="a-text" maxlength="280" placeholder="Message text..."></textarea>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Category</label>
+      <select class="edit-select" id="a-cat">
+        <option value="wish">🌟 Wish</option>
+        <option value="love">💕 Love</option>
+        <option value="dream">🌙 Dream</option>
+        <option value="prayer">🙏 Prayer</option>
+        <option value="random">✨ Random</option>
+      </select>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Color</label>
+      <select class="edit-select" id="a-color">
+        <option value="blue">🔵 Blue</option>
+        <option value="pink">🩷 Pink</option>
+        <option value="purple">🟣 Purple</option>
+        <option value="gold">🟡 Gold</option>
+        <option value="teal">🩵 Teal</option>
+      </select>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Language</label>
+      <select class="edit-select" id="a-lang">
+        <option value="id">🇮🇩 Bahasa Indonesia</option>
+        <option value="en">🇺🇸 English</option>
+        <option value="jp">🇯🇵 Japanese</option>
+        <option value="kr">🇰🇷 Korean</option>
+        <option value="fr">🇫🇷 French</option>
+        <option value="es">🇪🇸 Spanish</option>
+      </select>
+    </div>
+    <div class="edit-field">
+      <label class="edit-label">Date & Time (optional, defaults to now)</label>
+      <input class="edit-input" type="datetime-local" id="a-date">
+    </div>
+
+    <div class="edit-actions">
+      <button class="btn" id="add-cancel">Cancel</button>
+      <button class="btn btn--success" id="add-save">✅ Add Message</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ CONFIRM DIALOG ════════ -->
+<div id="confirm-dialog">
+  <div class="confirm-card">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Delete this message?</div>
+    <div class="confirm-sub" id="confirm-text">This action cannot be undone.</div>
+    <div class="confirm-btns">
+      <button class="btn" id="confirm-no">Cancel</button>
+      <button class="btn btn--danger" id="confirm-yes">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ TOAST ════════ -->
+<div id="admin-toast"></div>
+
+<script>
+/* ── Config ─────────────────────────────────────────────── */
+// Password is validated server-side via X-Admin-Token header
+// This client only stores the token for the session
+const ADMIN_TOKEN_KEY = 'swx_admin_token';
+let adminToken = '';
+let allMessages = [];
+
+/* ── Toast ──────────────────────────────────────────────── */
+function toast(msg, type = 'info') {
+  const container = document.getElementById('admin-toast');
+  const el = document.createElement('div');
+  el.className = `a-toast ${type}`;
+  el.textContent = msg;
+  container.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 400);
+  }, 3000);
+}
+
+/* ── API helpers ─────────────────────────────────────────── */
+async function adminAPI(method, body = null) {
+  const opts = {
+    method,
+    headers: {
+      'Content-Type'  : 'application/json',
+      'X-Admin-Token' : adminToken,
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch('/api/admin', opts);
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || 'API error');
+  return data;
+}
+
+/* ── Auth ────────────────────────────────────────────────── */
+document.getElementById('login-btn').addEventListener('click', tryLogin);
+document.getElementById('pw-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') tryLogin();
+});
+
+async function tryLogin() {
+  const pw = document.getElementById('pw-input').value.trim();
+  if (!pw) return;
+
+  document.getElementById('login-btn').textContent = 'Verifying...';
+  document.getElementById('login-btn').disabled = true;
+
+  try {
+    adminToken = pw;
+    await adminAPI('GET');
+    // If no error thrown → password correct
+    sessionStorage.setItem(ADMIN_TOKEN_KEY, pw);
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadMessages();
+  } catch {
+    document.getElementById('login-err').style.display = 'block';
+    adminToken = '';
+  } finally {
+    document.getElementById('login-btn').textContent = 'Access Dashboard →';
+    document.getElementById('login-btn').disabled = false;
+  }
+}
+
+// Auto-login if token in sessionStorage
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem(ADMIN_TOKEN_KEY);
+  if (saved) {
+    adminToken = saved;
+    // Silently verify
+    adminAPI('GET').then(() => {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadMessages();
+    }).catch(() => {
+      adminToken = '';
+      sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+    });
+  }
+});
+
+document.getElementById('btn-logout').addEventListener('click', () => {
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  adminToken = '';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pw-input').value = '';
+  document.getElementById('login-err').style.display = 'none';
+});
+
+/* ── Load Messages ───────────────────────────────────────── */
+async function loadMessages() {
+  try {
+    const data = await adminAPI('GET');
+    allMessages = data.messages || [];
+    updateStats();
+    renderTable();
+    toast(`✅ Loaded ${allMessages.length} messages`, 'ok');
+  } catch (e) {
+    toast('❌ Failed to load: ' + e.message, 'err');
+  }
+}
+
+document.getElementById('btn-refresh').addEventListener('click', loadMessages);
+
+/* ── Stats ───────────────────────────────────────────────── */
+function updateStats() {
+  const now   = Date.now();
+  const day   = 86400000;
+  const today = allMessages.filter(m => now - m.timestamp < day).length;
+  const likes = allMessages.reduce((s, m) => s + (m.likes || 0), 0);
+  const langs = new Set(allMessages.map(m => m.lang)).size;
+  const last  = allMessages[0];
+
+  document.getElementById('s-total').textContent = allMessages.length;
+  document.getElementById('s-today').textContent = today;
+  document.getElementById('s-likes').textContent = likes;
+  document.getElementById('s-langs').textContent = langs;
+  document.getElementById('s-last').textContent  = last
+    ? new Date(last.timestamp).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
+    : '—';
+}
+
+/* ── Render Table ────────────────────────────────────────── */
+function renderTable() {
+  const search = document.getElementById('f-search').value.toLowerCase();
+  const cat    = document.getElementById('f-cat').value;
+  const lang   = document.getElementById('f-lang').value;
+
+  let msgs = allMessages.filter(m => {
+    if (cat  !== 'all' && m.category !== cat)  return false;
+    if (lang !== 'all' && m.lang     !== lang) return false;
+    if (search && !m.text.toLowerCase().includes(search) &&
+        !m.nickname.toLowerCase().includes(search))      return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('msg-tbody');
+  if (!msgs.length) {
+    tbody.innerHTML = `<tr><td colspan="9" class="table-empty">No messages found 🌤️</td></tr>`;
+    return;
+  }
+
+  const colorHex = { blue:'#4FC3F7', pink:'#F48FB1', purple:'#CE93D8', gold:'#FFD54F', teal:'#80CBC4' };
+
+  tbody.innerHTML = msgs.map(m => {
+    const dateStr = new Date(m.timestamp).toLocaleString([], {
+      year:'2-digit', month:'short', day:'numeric',
+      hour:'2-digit', minute:'2-digit'
+    });
+    const dotColor = colorHex[m.color] || '#888';
+    const shortText = m.text.length > 80 ? m.text.slice(0, 77) + '…' : m.text;
+    const adminBadge = m.addedByAdmin || m.editedByAdmin
+      ? `<span style="font-size:10px; color:var(--yellow); margin-left:4px">✎admin</span>` : '';
+    return `
+    <tr>
+      <td class="td-id">${m.id.slice(0, 14)}…</td>
+      <td class="td-nick">${escHtml(m.nickname)}${adminBadge}</td>
+      <td class="td-text">${escHtml(shortText)}</td>
+      <td class="td-cat"><span class="badge badge--${m.category}">${m.category}</span></td>
+      <td><span class="color-dot" style="background:${dotColor}"></span>${m.color}</td>
+      <td>${m.lang}</td>
+      <td>${m.likes || 0}</td>
+      <td class="td-date">${dateStr}</td>
+      <td class="td-actions">
+        <button class="btn" style="padding:5px 10px; font-size:12px" onclick="openEdit('${m.id}')">✏️</button>
+        <button class="btn btn--danger" style="padding:5px 10px; font-size:12px; margin-left:4px" onclick="confirmDelete('${m.id}')">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// Filters
+['f-search','f-cat','f-lang'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderTable);
+  document.getElementById(id).addEventListener('change', renderTable);
+});
+
+/* ── Edit Message ────────────────────────────────────────── */
+let editingId = null;
+
+function openEdit(id) {
+  const msg = allMessages.find(m => m.id === id);
+  if (!msg) return;
+  editingId = id;
+
+  document.getElementById('e-nick').value  = msg.nickname;
+  document.getElementById('e-text').value  = msg.text;
+  document.getElementById('e-cat').value   = msg.category;
+  document.getElementById('e-color').value = msg.color;
+  document.getElementById('e-lang').value  = msg.lang;
+  document.getElementById('e-likes').value = msg.likes || 0;
+
+  // Convert timestamp to datetime-local format
+  const dt = new Date(msg.timestamp);
+  const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000)
+    .toISOString().slice(0, 16);
+  document.getElementById('e-date').value = local;
+
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+document.getElementById('edit-cancel').addEventListener('click', () => {
+  document.getElementById('edit-modal').classList.remove('open');
+  editingId = null;
+});
+
+document.getElementById('edit-save').addEventListener('click', async () => {
+  if (!editingId) return;
+
+  const dateVal = document.getElementById('e-date').value;
+  const ts = dateVal ? new Date(dateVal).getTime() : undefined;
+
+  const updates = {
+    nickname:  document.getElementById('e-nick').value.trim(),
+    text:      document.getElementById('e-text').value.trim(),
+    category:  document.getElementById('e-cat').value,
+    color:     document.getElementById('e-color').value,
+    lang:      document.getElementById('e-lang').value,
+    likes:     parseInt(document.getElementById('e-likes').value) || 0,
+  };
+  if (ts) updates.timestamp = ts;
+
+  if (!updates.nickname || !updates.text) {
+    toast('Nickname and text are required', 'err'); return;
+  }
+
+  try {
+    document.getElementById('edit-save').textContent = 'Saving...';
+    await adminAPI('PUT', { id: editingId, updates });
+
+    // Update local cache
+    const idx = allMessages.findIndex(m => m.id === editingId);
+    if (idx !== -1) Object.assign(allMessages[idx], updates, { editedByAdmin: true });
+
+    renderTable(); updateStats();
+    document.getElementById('edit-modal').classList.remove('open');
+    toast('✅ Message updated!', 'ok');
+  } catch (e) {
+    toast('❌ ' + e.message, 'err');
+  } finally {
+    document.getElementById('edit-save').textContent = '💾 Save Changes';
+  }
+});
+
+/* ── Add Message ─────────────────────────────────────────── */
+document.getElementById('btn-add-msg').addEventListener('click', () => {
+  // Reset form
+  ['a-nick','a-text','a-date'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('a-cat').value   = 'random';
+  document.getElementById('a-color').value = 'blue';
+  document.getElementById('a-lang').value  = 'id';
+  document.getElementById('add-modal').classList.add('open');
+});
+
+document.getElementById('add-cancel').addEventListener('click', () => {
+  document.getElementById('add-modal').classList.remove('open');
+});
+
+document.getElementById('add-save').addEventListener('click', async () => {
+  const nick  = document.getElementById('a-nick').value.trim();
+  const text  = document.getElementById('a-text').value.trim();
+  const cat   = document.getElementById('a-cat').value;
+  const color = document.getElementById('a-color').value;
+  const lang  = document.getElementById('a-lang').value;
+  const dtVal = document.getElementById('a-date').value;
+  const ts    = dtVal ? new Date(dtVal).getTime() : Date.now();
+
+  if (!nick || !text) { toast('Nickname and text required', 'err'); return; }
+
+  try {
+    document.getElementById('add-save').textContent = 'Adding...';
+    const data = await adminAPI('POST', { nickname: nick, text, category: cat, color, lang, timestamp: ts });
+    allMessages.unshift(data.message);
+    renderTable(); updateStats();
+    document.getElementById('add-modal').classList.remove('open');
+    toast('✅ Message added!', 'ok');
+  } catch (e) {
+    toast('❌ ' + e.message, 'err');
+  } finally {
+    document.getElementById('add-save').textContent = '✅ Add Message';
+  }
+});
+
+/* ── Delete Message ──────────────────────────────────────── */
+let deleteId = null;
+
+function confirmDelete(id) {
+  const msg = allMessages.find(m => m.id === id);
+  deleteId = id;
+  document.getElementById('confirm-text').textContent =
+    `"${msg?.text?.slice(0, 50) || id}${msg?.text?.length > 50 ? '…' : ''}"`;
+  document.getElementById('confirm-dialog').classList.add('open');
+}
+
+document.getElementById('confirm-no').addEventListener('click', () => {
+  document.getElementById('confirm-dialog').classList.remove('open');
+  deleteId = null;
+});
+
+document.getElementById('confirm-yes').addEventListener('click', async () => {
+  if (!deleteId) return;
+  try {
+    await adminAPI('DELETE', { id: deleteId });
+    allMessages = allMessages.filter(m => m.id !== deleteId);
+    renderTable(); updateStats();
+    document.getElementById('confirm-dialog').classList.remove('open');
+    toast('🗑️ Message deleted', 'ok');
+  } catch (e) {
+    toast('❌ ' + e.message, 'err');
+  } finally {
+    deleteId = null;
+  }
+});
+
+// Close modals on overlay click
+['edit-modal','add-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target === document.getElementById(id)) {
+      document.getElementById(id).classList.remove('open');
+    }
+  });
+});
+</script>
+</body>
+</html>
