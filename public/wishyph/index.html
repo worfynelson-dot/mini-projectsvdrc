@@ -2,146 +2,211 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>WishyPhotos — Sign In</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+  <title>WishyPhotos</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    :root{--bg:#000;--card:#111;--input:#1e1e1e;--border:#222;--border2:#333;
-           --txt:#fff;--txt2:#a0a0a0;--txt3:#666;--accent:#fe2c55;--accent2:#ff4472;
-           --glow:rgba(254,44,85,.3);--teal:#25f4ee}
-    html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt)}
-
-    .wrap{display:flex;align-items:center;justify-content:center;height:100%;padding:40px 30px}
-    .box{width:100%;max-width:360px;text-align:center}
-
-    .logo{font-size:42px;font-weight:900;letter-spacing:-1.5px;margin-bottom:6px}
-    .logo .a{color:var(--teal)}.logo .b{color:var(--accent)}
-    .tag{color:var(--txt3);font-size:14px;margin-bottom:50px}
-
-    .tabs{display:flex;background:var(--input);border-radius:14px;padding:4px;margin-bottom:32px}
-    .tab{flex:1;padding:12px;font-size:14px;font-weight:600;color:var(--txt3);
-         cursor:pointer;border-radius:11px;transition:.3s;border:none;background:none;font-family:inherit}
-    .tab.on{background:var(--accent);color:#fff;box-shadow:0 4px 20px var(--glow)}
-
-    form{display:flex;flex-direction:column;gap:14px}
-    input[type=text],input[type=password]{width:100%;padding:16px 18px;background:var(--input);
-      border:2px solid var(--border);border-radius:14px;color:var(--txt);font-size:15px;
-      font-family:inherit;outline:none;transition:.3s}
-    input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--glow)}
-    input::placeholder{color:var(--txt3)}
-
-    .signup-only{display:none;flex-direction:column;gap:14px}
-    .signup-only.show{display:flex}
-
-    .av-pick{width:90px;height:90px;border-radius:50%;background:var(--input);
-      border:3px dashed var(--border2);display:flex;align-items:center;justify-content:center;
-      margin:0 auto 10px;cursor:pointer;overflow:hidden;transition:.3s}
-    .av-pick:hover{border-color:var(--accent)}
-    .av-pick img{width:100%;height:100%;object-fit:cover}
-    .av-pick .ph{font-size:32px;color:var(--txt3)}
-
-    .btn{padding:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;
-      font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:.3s;margin-top:6px}
-    .btn:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 8px 30px var(--glow)}
-
-    .msg{font-size:13px;margin-top:8px;min-height:20px;font-weight:500}
-    .msg.err{color:var(--accent)}.msg.ok{color:var(--teal)}
+    html,body{height:100%;font-family:'Inter',sans-serif;background:#000;color:#fff;overflow:hidden}
+    .c{display:flex;align-items:center;justify-content:center;height:100%;padding:40px 28px}
+    .b{width:100%;max-width:360px;text-align:center}
+    .logo{font-size:44px;font-weight:900;letter-spacing:-1.5px;margin-bottom:4px}
+    .logo .x{color:#25f4ee}.logo .y{color:#fe2c55}
+    .tag{color:#555;font-size:13px;margin-bottom:48px}
+    .tabs{display:flex;background:#1e1e1e;border-radius:14px;padding:4px;margin-bottom:30px}
+    .tab{flex:1;padding:12px;font-size:14px;font-weight:600;color:#555;cursor:pointer;
+      border-radius:11px;transition:.3s;border:none;background:none;font-family:inherit}
+    .tab.on{background:#fe2c55;color:#fff;box-shadow:0 4px 20px rgba(254,44,85,.3)}
+    form{display:flex;flex-direction:column;gap:12px}
+    .extra{display:none;flex-direction:column;gap:12px}.extra.show{display:flex}
+    .avp{width:88px;height:88px;border-radius:50%;background:#1e1e1e;border:3px dashed #333;
+      display:flex;align-items:center;justify-content:center;margin:0 auto 8px;cursor:pointer;
+      overflow:hidden;transition:.3s}
+    .avp:hover{border-color:#fe2c55}
+    .avp img{width:100%;height:100%;object-fit:cover}
+    .avp span{font-size:30px;color:#555}
+    input[type=text],input[type=password]{width:100%;padding:15px 16px;background:#1e1e1e;
+      border:2px solid #222;border-radius:13px;color:#fff;font-size:15px;font-family:inherit;
+      outline:none;transition:.3s}
+    input:focus{border-color:#fe2c55;box-shadow:0 0 0 3px rgba(254,44,85,.25)}
+    input::placeholder{color:#555}
+    .btn{padding:15px;background:#fe2c55;color:#fff;border:none;border-radius:13px;
+      font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:.3s;margin-top:4px}
+    .btn:hover{background:#ff4472;transform:translateY(-1px);box-shadow:0 8px 28px rgba(254,44,85,.3)}
+    .btn:active{transform:scale(.97)}
+    .btn:disabled{opacity:.5;cursor:wait}
+    .msg{font-size:13px;margin-top:6px;min-height:18px;font-weight:500}
+    .msg.e{color:#fe2c55}.msg.s{color:#25f4ee}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="box">
-      <div class="logo"><span class="a">Wishy</span><span class="b">Photos</span></div>
-      <p class="tag">Scroll. Discover. Share your moments.</p>
-
-      <div class="tabs">
-        <button class="tab on" id="tabLogin" onclick="switchTab('login')">Log In</button>
-        <button class="tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
-      </div>
-
-      <form id="authForm" onsubmit="handleAuth(event)">
-        <div class="signup-only" id="extras">
-          <div class="av-pick" id="avPick" onclick="document.getElementById('avFile').click()">
-            <span class="ph">📷</span>
-          </div>
-          <input type="file" id="avFile" accept="image/*" hidden>
-          <input type="text" id="dispName" placeholder="Display Name">
-        </div>
-
-        <input type="text" id="user" placeholder="Username" required>
-        <input type="password" id="pass" placeholder="Password" required>
-        <button class="btn" id="submitBtn" type="submit">Log In</button>
-        <div class="msg" id="msg"></div>
-      </form>
+<div class="c">
+  <div class="b">
+    <div class="logo"><span class="x">Wishy</span><span class="y">Photos</span></div>
+    <p class="tag">Scroll. Discover. Share moments.</p>
+    <div class="tabs">
+      <button type="button" class="tab on" id="tL" onclick="sw('login')">Log In</button>
+      <button type="button" class="tab" id="tS" onclick="sw('signup')">Sign Up</button>
     </div>
+    <form id="authForm">
+      <div class="extra" id="ext">
+        <div class="avp" id="avp" onclick="document.getElementById('avf').click()">
+          <span>📷</span>
+        </div>
+        <input type="file" id="avf" accept="image/*" hidden>
+        <input type="text" id="dn" placeholder="Display Name">
+      </div>
+      <input type="text" id="un" placeholder="Username" required autocomplete="username">
+      <input type="password" id="pw" placeholder="Password" required autocomplete="current-password">
+      <button class="btn" type="submit" id="sbtn">Log In</button>
+      <div class="msg" id="msg"></div>
+    </form>
   </div>
+</div>
 
-  <script src="core.js"></script>
-  <script>
-    // If already logged in, redirect
-    if (getSession()) goTo('feed.html');
+<script src="core.js"></script>
+<script>
+(function() {
+  // Already logged in? Go to feed
+  if (getSS()) { go('feed.html'); return; }
 
-    let mode = 'login';
-    let avatarData = null;
+  var mode = 'login';
+  var avData = null;
+  var busy = false;
 
-    document.getElementById('avFile').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      avatarData = await fileToBase64(file);
-      const pick = document.getElementById('avPick');
-      pick.innerHTML = `<img src="${avatarData}" alt="">`;
-    });
+  function $(id) { return document.getElementById(id); }
 
-    function switchTab(tab) {
-      mode = tab;
-      document.getElementById('tabLogin').className = tab === 'login' ? 'tab on' : 'tab';
-      document.getElementById('tabSignup').className = tab === 'signup' ? 'tab on' : 'tab';
-      document.getElementById('extras').className = tab === 'signup' ? 'signup-only show' : 'signup-only';
-      document.getElementById('submitBtn').textContent = tab === 'login' ? 'Log In' : 'Create Account';
-      document.getElementById('msg').textContent = '';
-    }
+  // Avatar picker
+  $('avf').addEventListener('change', async function(e) {
+    var f = e.target.files[0];
+    if (!f) return;
+    avData = await toB64(f);
+    $('avp').innerHTML = '<img src="' + avData + '">';
+  });
 
-    async function handleAuth(e) {
-      e.preventDefault();
-      const username = document.getElementById('user').value.trim().toLowerCase();
-      const password = document.getElementById('pass').value;
-      const msg = document.getElementById('msg');
+  // Tab switch
+  window.sw = function(m) {
+    mode = m;
+    busy = false;
+    $('tL').className = m === 'login' ? 'tab on' : 'tab';
+    $('tS').className = m === 'signup' ? 'tab on' : 'tab';
+    $('ext').className = m === 'signup' ? 'extra show' : 'extra';
+    $('sbtn').textContent = m === 'login' ? 'Log In' : 'Create Account';
+    $('sbtn').disabled = false;
+    $('msg').textContent = '';
+    $('msg').className = 'msg';
+  };
 
-      if (username.length < 3) { msg.className='msg err'; msg.textContent='Username must be 3+ chars'; return; }
-      if (password.length < 4) { msg.className='msg err'; msg.textContent='Password must be 4+ chars'; return; }
+  function showErr(text) {
+    $('msg').className = 'msg e';
+    $('msg').textContent = text;
+  }
 
-      const db = getDB();
-      const hashed = await hashPassword(password);
+  function showOk(text) {
+    $('msg').className = 'msg s';
+    $('msg').textContent = text;
+  }
+
+  function resetBtn() {
+    busy = false;
+    $('sbtn').disabled = false;
+    $('sbtn').textContent = mode === 'login' ? 'Log In' : 'Create Account';
+  }
+
+  // Form submit
+  $('authForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    // Prevent double clicks
+    if (busy) return;
+
+    var username = $('un').value.trim().toLowerCase();
+    var password = $('pw').value;
+
+    // Validate
+    if (username.length < 3) { showErr('Username needs 3+ characters'); return; }
+    if (password.length < 4) { showErr('Password needs 4+ characters'); return; }
+    if (/[^a-z0-9_.]/.test(username)) { showErr('Only letters, numbers, _ and .'); return; }
+
+    // Lock
+    busy = true;
+    $('sbtn').disabled = true;
+    $('sbtn').textContent = 'Please wait...';
+    $('msg').textContent = '';
+
+    try {
+      var h = await hpw(password);
+      var db = getDB();
 
       if (mode === 'signup') {
-        if (db.users.find(u => u.username === username)) {
-          msg.className='msg err'; msg.textContent='Username already taken'; return;
+        // Check taken
+        var taken = false;
+        for (var i = 0; i < db.users.length; i++) {
+          if (db.users[i].username === username) { taken = true; break; }
         }
-        const displayName = document.getElementById('dispName').value.trim() || username;
-        const newUser = {
-          id: db.nextUserId++,
-          username,
-          password: hashed,
-          displayName,
-          avatar: avatarData || null,
+        if (taken) {
+          showErr('Username already taken');
+          resetBtn();
+          return;
+        }
+
+        // Upload avatar
+        var avatarUrl = null;
+        if (avData) {
+          try {
+            var resp = await fetch(avData);
+            var blob = await resp.blob();
+            var file = new File([blob], 'av_' + username + '.jpg', { type: blob.type });
+            avatarUrl = await upload(file);
+          } catch (err) {
+            avatarUrl = avData;
+          }
+        }
+
+        var user = {
+          id: db.uid++,
+          username: username,
+          password: h,
+          displayName: $('dn').value.trim() || username,
+          avatar: avatarUrl,
           bio: '',
           followers: [],
           following: [],
-          likedPosts: [],
           createdAt: Date.now()
         };
-        db.users.push(newUser);
+        db.users.push(user);
         saveDB(db);
-        setSession(newUser);
-        goTo('feed.html');
+        setSS(user);
+        showOk('Account created! Redirecting...');
+        setTimeout(function() { go('feed.html'); }, 600);
+
       } else {
-        const user = db.users.find(u => u.username === username && u.password === hashed);
-        if (!user) { msg.className='msg err'; msg.textContent='Invalid username or password'; return; }
-        setSession(user);
-        goTo('feed.html');
+        // LOGIN
+        var found = null;
+        for (var j = 0; j < db.users.length; j++) {
+          if (db.users[j].username === username && db.users[j].password === h) {
+            found = db.users[j];
+            break;
+          }
+        }
+
+        if (!found) {
+          showErr('Wrong username or password');
+          resetBtn();
+          return;
+        }
+
+        setSS(found);
+        showOk('Welcome back! Redirecting...');
+        setTimeout(function() { go('feed.html'); }, 600);
       }
+
+    } catch (err) {
+      showErr('Something went wrong. Try again.');
+      resetBtn();
     }
-  </script>
+  });
+})();
+</script>
 </body>
-</html>
+        </html>
