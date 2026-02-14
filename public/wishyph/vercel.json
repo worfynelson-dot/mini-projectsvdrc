@@ -1,12 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/wishyPhotos",
-      "destination": "/wishyPhotos/index.html"
+      "source": "/wishyph",
+      "destination": "/wishyph/index.html"
     },
     {
-      "source": "/wishyPhotos/",
-      "destination": "/wishyPhotos/index.html"
+      "source": "/wishyph/",
+      "destination": "/wishyph/index.html"
     }
   ],
   "headers": [
