@@ -3,429 +3,421 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DEAD_OS // Investigation Unit</title>
+<title>DEAD_OS // NIGHTMARE EDITION</title>
 <style>
-  :root { --accent: #00ff41; --bg: #121212; --glass: rgba(20,20,20,0.85); }
-  * { box-sizing: border-box; user-select: none; cursor: default; }
-  body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; color: #eee; }
+  /* --- SYSTEM VISUALS --- */
+  :root { --glass: rgba(18, 18, 18, 0.85); --accent: #ff003c; --text: #e0e0e0; }
+  * { box-sizing: border-box; user-select: none; -webkit-user-select: none; cursor: default; }
+  body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, sans-serif; color: var(--text); height: 100vh; }
   
-  /* WALLPAPER & FX */
+  /* WALLPAPER */
   #desktop {
-    width: 100vw; height: 100vh; position: relative;
-    background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop') no-repeat center center/cover;
-    transition: filter 0.5s;
+    width: 100%; height: 100%; position: relative;
+    background: url('https://images.unsplash.com/photo-1518558997970-4dadc8055365?q=80&w=1920&auto=format&fit=crop') center/cover;
+    transition: filter 2s;
   }
-  #desktop::after {
-    content:''; position:absolute; top:0; left:0; width:100%; height:100%;
-    background: radial-gradient(circle, transparent 40%, #000 100%); pointer-events: none;
-  }
-  .glitch-fx { animation: glitch 0.2s infinite; filter: hue-rotate(90deg); }
-  @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(2px, -2px); } 60% { transform: translate(0); } }
-
-  /* ICONS */
-  .icon-grid { padding: 20px; display: flex; flex-direction: column; flex-wrap: wrap; height: 90vh; align-content: flex-start; gap: 15px; z-index: 10; position: relative; }
-  .icon {
-    width: 80px; text-align: center; padding: 10px; border-radius: 5px; transition: 0.2s;
-    text-shadow: 0 2px 5px rgba(0,0,0,0.8); cursor: pointer;
-  }
-  .icon:hover { background: rgba(255,255,255,0.1); }
-  .icon div { font-size: 36px; margin-bottom: 5px; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
-  .icon span { font-size: 13px; font-weight: 500; }
-
-  /* WINDOWS */
-  .window {
-    position: absolute; background: var(--glass); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-    display: flex; flex-direction: column; overflow: hidden; min-width: 300px; min-height: 200px;
-    animation: openWin 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-  }
-  @keyframes openWin { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  #desktop::before { content:''; position:absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); pointer-events:none; }
   
-  .title-bar {
-    height: 32px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between;
+  /* DESKTOP ICONS */
+  .grid { display: flex; flex-direction: column; flex-wrap: wrap; height: 90vh; padding: 15px; gap: 10px; align-content: flex-start; }
+  .icon {
+    width: 84px; padding: 10px; border-radius: 6px; text-align: center; transition: 0.2s;
+    text-shadow: 0 2px 4px #000; cursor: pointer; position: relative; z-index: 10;
+  }
+  .icon:hover { background: rgba(255,255,255,0.15); transform: scale(1.05); }
+  .icon div { font-size: 38px; margin-bottom: 5px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
+  .icon span { font-size: 12px; font-weight: 500; letter-spacing: 0.5px; }
+
+  /* WINDOW MANAGER */
+  .win {
+    position: absolute; background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+    display: flex; flex-direction: column; overflow: hidden; animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    min-width: 320px; min-height: 200px;
+  }
+  @keyframes pop { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  
+  .bar {
+    height: 36px; background: rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between;
     padding: 0 12px; cursor: grab; border-bottom: 1px solid rgba(255,255,255,0.05);
   }
-  .title-bar:active { cursor: grabbing; }
-  .controls { display: flex; gap: 8px; }
-  .dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
-  .cls { background: #ff5f57; } .min { background: #febc2e; } .max { background: #28c840; }
+  .bar:active { cursor: grabbing; }
+  .title { font-size: 13px; opacity: 0.8; display: flex; align-items: center; gap: 8px; }
+  .actions { display: flex; gap: 8px; }
+  .btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+  .btn.c { background: #ff5f56; } .btn.m { background: #ffbd2e; } .btn.f { background: #27c93f; }
+  .btn:hover { transform: scale(1.2); filter: brightness(1.1); }
   
-  .content { flex: 1; overflow: auto; padding: 0; position: relative; }
-  
+  .view { flex: 1; overflow: auto; position: relative; }
+
   /* TASKBAR */
   #taskbar {
-    position: absolute; bottom: 0; width: 100%; height: 48px; background: rgba(10,10,10,0.85);
-    backdrop-filter: blur(20px); display: flex; align-items: center; padding: 0 15px; border-top: 1px solid rgba(255,255,255,0.1); z-index: 999;
+    position: absolute; bottom: 0; width: 100%; height: 52px; background: rgba(15,15,15,0.9);
+    backdrop-filter: blur(30px); display: flex; align-items: center; padding: 0 16px; z-index: 999;
+    border-top: 1px solid rgba(255,255,255,0.08); box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
   }
-  #start { font-size: 22px; margin-right: 20px; transition: 0.2s; cursor: pointer; filter: grayscale(1); }
-  #start:hover { filter: grayscale(0); transform: scale(1.1); }
-  .task {
-    width: 40px; height: 40px; margin-right: 8px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
-    transition: 0.2s; cursor: pointer; position: relative;
+  #start { 
+    font-size: 24px; margin-right: 20px; cursor: pointer; transition: 0.3s; 
+    filter: drop-shadow(0 0 5px rgba(0,255,255,0.5)); 
   }
-  .task:hover { background: rgba(255,255,255,0.1); }
-  .task.active { background: rgba(255,255,255,0.15); box-shadow: inset 0 -2px 0 var(--accent); }
-  #clock { margin-left: auto; font-size: 12px; font-weight: 600; color: #ccc; }
+  #start:hover { filter: drop-shadow(0 0 15px rgba(0,255,255,0.8)); transform: rotate(-10deg); }
+  .dock { display: flex; gap: 6px; flex: 1; }
+  .app-tab {
+    width: 42px; height: 42px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.05); transition: 0.2s; cursor: pointer; position: relative; font-size: 20px;
+  }
+  .app-tab:hover { background: rgba(255,255,255,0.15); transform: translateY(-3px); }
+  .app-tab.active::after {
+    content:''; position:absolute; bottom: -2px; width: 20px; height: 3px; 
+    background: var(--accent); border-radius: 2px;
+  }
+  #time { font-size: 13px; font-weight: 500; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
 
-  /* APP STYLES */
-  .term-body { background: #0c0c0c; color: #ccc; font-family: 'Consolas', monospace; padding: 10px; height: 100%; font-size: 14px; }
-  .term-input { background: transparent; border: none; color: transparent; width: 1px; height: 1px; }
-  .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); padding: 10px; gap: 10px; }
-  .file-item { text-align: center; cursor: pointer; padding: 10px; border-radius: 4px; }
-  .file-item:hover { background: rgba(255,255,255,0.1); }
-  
-  /* PHONE EMULATOR */
-  .phone-wrap { width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; }
-  .phone-header { padding: 10px; background: #222; display: flex; justify-content: space-between; font-size: 12px; }
-  .msg-list { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; background: #111; }
-  .msg { padding: 8px 12px; border-radius: 15px; max-width: 80%; font-size: 13px; }
-  .msg.in { background: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
-  .msg.out { background: #005c4b; align-self: flex-end; border-bottom-right-radius: 2px; }
-  
-  /* START OVERLAY */
-  #overlay {
-    position: fixed; top:0; left:0; width:100%; height:100%; background: #000; z-index: 10000;
-    display: flex; align-items: center; justify-content: center; flex-direction: column;
+  /* START SCREEN */
+  #boot {
+    position: fixed; inset: 0; background: #000; z-index: 10000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer;
   }
-  button { padding: 15px 30px; background: var(--accent); border: none; font-weight: bold; font-size: 16px; cursor: pointer; letter-spacing: 2px; }
+  .loader { width: 200px; height: 4px; background: #333; margin-top: 20px; border-radius: 2px; overflow: hidden; }
+  .fill { width: 0%; height: 100%; background: var(--accent); animation: load 3s ease-out forwards; }
+  @keyframes load { to { width: 100%; } }
 
-  @media (max-width: 600px) { .window { width: 96% !important; left: 2% !important; top: 50px !important; height: 80% !important; } }
+  /* APP SPECIFIC */
+  .term-wrap { background: #0c0c0c; color: #0f0; font-family: monospace; padding: 15px; height: 100%; font-size: 14px; }
+  .msg-bubble { background: #333; padding: 8px 12px; border-radius: 12px; margin: 5px 0; max-width: 80%; font-size: 13px; }
+  .msg-bubble.sent { background: #005c4b; align-self: flex-end; margin-left: auto; }
+  
+  /* MOBILE OPTIMIZATIONS */
+  @media (max-width: 600px) { 
+    .win { left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; border-radius: 0; }
+    .bar { height: 45px; } 
+    .btn { width: 16px; height: 16px; }
+    .icon { width: 70px; }
+  }
 </style>
 </head>
 <body>
 
-<div id="overlay">
-  <h1 style="color:#fff; letter-spacing:5px;">DEAD_OS</h1>
-  <p style="color:#666; margin-bottom:30px;">CASE FILE: #992-AX // NIGHT STALKER</p>
-  <button onclick="SYS.boot()">INITIALIZE SYSTEM</button>
+<!-- START SCREEN -->
+<div id="boot" onclick="SYS.start()">
+  <h1 style="color:#fff; letter-spacing: 5px;">DEAD_OS</h1>
+  <div style="color:#666; margin-top:10px;">[ TAP TO INITIALIZE SYSTEM ]</div>
+  <div class="loader"><div class="fill"></div></div>
 </div>
 
+<!-- DESKTOP -->
 <div id="desktop">
-  <div class="icon-grid">
+  <div class="grid">
     <div class="icon" onclick="APP.open('pc')"><div>💻</div><span>This PC</span></div>
-    <div class="icon" onclick="APP.open('notes')"><div>📝</div><span>Case Notes</span></div>
     <div class="icon" onclick="APP.open('terminal')"><div>📟</div><span>Terminal</span></div>
     <div class="icon" onclick="APP.open('scrcpy')"><div>📱</div><span>Scrcpy</span></div>
-    <div class="icon" onclick="APP.open('browser')"><div>🧅</div><span>Tor</span></div>
-    <div class="icon" onclick="APP.open('gallery')"><div>📷</div><span>Evidence</span></div>
+    <div class="icon" onclick="APP.open('browser')"><div>🌍</div><span>Tor</span></div>
     <div class="icon" onclick="APP.open('trash')"><div>🗑️</div><span>Trash</span></div>
-    <div class="icon" onclick="APP.open('music')"><div>🎵</div><span>Ambience</span></div>
+    <div class="icon" onclick="APP.open('music')"><div>🎵</div><span>Music</span></div>
+    <div class="icon" onclick="APP.open('gallery')"><div>📷</div><span>Photos</span></div>
+    <div class="icon" onclick="APP.open('notes')"><div>📝</div><span>Notes</span></div>
   </div>
+  
+  <!-- Windows Layer -->
+  <div id="wins"></div>
 
-  <div id="win-layer"></div>
-
+  <!-- Taskbar -->
   <div id="taskbar">
     <div id="start">❖</div>
-    <div id="dock" style="display:flex;"></div>
-    <div id="clock">00:00</div>
+    <div class="dock" id="dock"></div>
+    <div id="time">00:00</div>
   </div>
 </div>
 
-<!-- PART 1: SYSTEM ENGINE (UI, Audio, Window Management) -->
+<!-- ========================================== -->
+<!-- SCRIPT 1: SYSTEM ENGINE (The core OS)      -->
+<!-- ========================================== -->
 <script>
 const SYS = {
-  z: 100, wins: [], audio: null, osc: null,
+  z: 100,
+  audioCtx: null,
   
-  boot: function() {
-    document.getElementById('overlay').style.display = 'none';
-    this.audio = new (window.AudioContext || window.webkitAudioContext)();
-    this.playDrone();
-    this.clockLoop();
-    // Start Story
-    setTimeout(() => APP.open('notes'), 1000);
+  start: function() {
+    document.getElementById('boot').style.display = 'none';
+    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    this.playAmbience();
+    this.updateClock();
+    setInterval(() => this.updateClock(), 1000);
+    setTimeout(() => APP.open('notes'), 500); // Auto open notes
+    
     // Global Inputs
     window.addEventListener('mouseup', () => this.stopDrag());
     window.addEventListener('touchend', () => this.stopDrag());
     window.addEventListener('mousemove', (e) => this.drag(e));
-    window.addEventListener('touchmove', (e) => this.drag(e));
+    window.addEventListener('touchmove', (e) => this.drag(e), {passive: false});
   },
 
-  createWin: function(id, title, html, w=500, h=400) {
+  updateClock: function() {
+    const d = new Date();
+    document.getElementById('time').innerText = 
+      d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  },
+
+  // Window Factory
+  createWin: function(id, title, html, w=400, h=300) {
     if(document.getElementById('w-'+id)) return this.focus(id);
-    const win = document.createElement('div');
-    win.className = 'window'; win.id = 'w-'+id;
-    win.style.width = w+'px'; win.style.height = h+'px';
-    win.style.zIndex = ++this.z;
-    // Random spawn pos
-    win.style.left = (Math.random()*50 + 50) + 'px';
-    win.style.top = (Math.random()*50 + 50) + 'px';
     
+    const win = document.createElement('div');
+    win.className = 'win';
+    win.id = 'w-'+id;
+    win.style.width = w+'px';
+    win.style.height = h+'px';
+    win.style.zIndex = ++this.z;
+    // Random spawn position
+    const left = Math.random() * (window.innerWidth - w - 20) + 10;
+    const top = Math.random() * (window.innerHeight - h - 100) + 10;
+    win.style.left = Math.max(0, left) + 'px';
+    win.style.top = Math.max(0, top) + 'px';
+
     win.innerHTML = `
-      <div class="title-bar" onmousedown="SYS.startDrag(event, '${id}')" ontouchstart="SYS.startDrag(event, '${id}')">
-        <div style="display:flex;align-items:center;gap:10px;"><span>${title}</span></div>
-        <div class="controls">
-          <div class="dot min"></div>
-          <div class="dot max"></div>
-          <div class="dot cls" onclick="SYS.close('${id}')"></div>
+      <div class="bar" onmousedown="SYS.startDrag(event, '${id}')" ontouchstart="SYS.startDrag(event, '${id}')">
+        <div class="title">${title}</div>
+        <div class="actions">
+          <div class="btn m"></div>
+          <div class="btn c" onclick="SYS.close('${id}')"></div>
         </div>
       </div>
-      <div class="content">${html}</div>
+      <div class="view">${html}</div>
     `;
     
     win.onmousedown = () => this.focus(id);
-    document.getElementById('win-layer').appendChild(win);
-    this.wins.push(id);
-    this.addDock(id);
+    document.getElementById('wins').appendChild(win);
+    this.addTask(id, title);
   },
 
   close: function(id) {
     document.getElementById('w-'+id).remove();
     document.getElementById('t-'+id).remove();
-    this.wins = this.wins.filter(x => x !== id);
   },
 
   focus: function(id) {
     const el = document.getElementById('w-'+id);
     if(el) el.style.zIndex = ++this.z;
-    document.querySelectorAll('.task').forEach(t => t.classList.remove('active'));
-    const t = document.getElementById('t-'+id);
-    if(t) t.classList.add('active');
+    document.querySelectorAll('.app-tab').forEach(t => t.classList.remove('active'));
+    const task = document.getElementById('t-'+id);
+    if(task) task.classList.add('active');
   },
 
-  addDock: function(id) {
-    const d = document.getElementById('dock');
-    const t = document.createElement('div');
-    t.className = 'task active'; t.id = 't-'+id;
-    t.innerText = id[0].toUpperCase();
-    t.onclick = () => this.focus(id);
-    d.appendChild(t);
+  addTask: function(id, title) {
+    const dock = document.getElementById('dock');
+    const tab = document.createElement('div');
+    tab.className = 'app-tab active';
+    tab.id = 't-'+id;
+    tab.innerHTML = title[0];
+    tab.onclick = () => this.focus(id);
+    dock.appendChild(tab);
   },
 
   // Drag Logic
-  dragEl: null, offX:0, offY:0,
+  dragEl: null, offX: 0, offY: 0,
   startDrag: function(e, id) {
     this.dragEl = document.getElementById('w-'+id);
     this.focus(id);
-    const c = e.touches ? e.touches[0] : e;
-    const r = this.dragEl.getBoundingClientRect();
-    this.offX = c.clientX - r.left; this.offY = c.clientY - r.top;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const rect = this.dragEl.getBoundingClientRect();
+    this.offX = clientX - rect.left;
+    this.offY = clientY - rect.top;
   },
   drag: function(e) {
     if(!this.dragEl) return;
     e.preventDefault();
-    const c = e.touches ? e.touches[0] : e;
-    this.dragEl.style.left = (c.clientX - this.offX) + 'px';
-    this.dragEl.style.top = (c.clientY - this.offY) + 'px';
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    this.dragEl.style.left = (clientX - this.offX) + 'px';
+    this.dragEl.style.top = (clientY - this.offY) + 'px';
   },
   stopDrag: function() { this.dragEl = null; },
 
-  clockLoop: function() {
-    const d = new Date();
-    document.getElementById('clock').innerText = d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
-    setTimeout(() => this.clockLoop(), 1000);
-  },
-
-  // Procedural Horror Audio
-  playDrone: function() {
-    if(!this.audio) return;
-    const o = this.audio.createOscillator();
-    const g = this.audio.createGain();
-    o.type = 'sawtooth'; o.frequency.value = 50;
-    // Lowpass filter for "muffled" sound
-    const f = this.audio.createBiquadFilter();
-    f.type = 'lowpass'; f.frequency.value = 100;
+  // Audio Engine
+  playAmbience: function() {
+    const osc = this.audioCtx.createOscillator();
+    const gain = this.audioCtx.createGain();
+    const filter = this.audioCtx.createBiquadFilter();
     
-    o.connect(f); f.connect(g); g.connect(this.audio.destination);
-    g.gain.value = 0.15;
-    o.start();
-    this.osc = o; // Keep ref to stop
+    osc.type = 'sawtooth';
+    osc.frequency.value = 40; // Low horror drone
+    filter.type = 'lowpass';
+    filter.frequency.value = 120;
+    
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.audioCtx.destination);
+    
+    gain.gain.value = 0.15;
+    osc.start();
+    this.ambience = osc;
   },
   
-  sfx: function(type) {
-    if(!this.audio) return;
-    const o = this.audio.createOscillator();
-    const g = this.audio.createGain();
-    o.connect(g); g.connect(this.audio.destination);
-    if(type=='err') { o.type='sawtooth'; o.frequency.value=150; g.gain.exponentialRampToValueAtTime(0.01, this.audio.currentTime+0.3); }
-    if(type=='scare') { o.type='square'; o.frequency.value=600; o.frequency.linearRampToValueAtTime(100, this.audio.currentTime+0.5); g.gain.value=0.5; }
-    o.start(); o.stop(this.audio.currentTime + (type=='scare'?0.5:0.3));
+  toggleAudio: function() {
+    if(this.audioCtx.state === 'running') this.audioCtx.suspend();
+    else this.audioCtx.resume();
   }
 };
 </script>
 
-<!-- PART 2: GAMEPLAY LOGIC & APPS -->
+<!-- ========================================== -->
+<!-- SCRIPT 2: GAME LOGIC (Apps, Puzzles, Horror) -->
+<!-- ========================================== -->
 <script>
 const GAME = {
-  stage: 0,
-  password: 'death', // The answer to the puzzle
-  phoneUnlocked: false,
-  gps: false
+  gpsUnlocked: false,
+  phoneUnlocked: false
 };
 
 const APP = {
   open: function(name) {
     switch(name) {
       case 'notes':
-        SYS.createWin('notes', 'Case #992 Notes', `
-          <div style="padding:15px; color:#ddd; line-height:1.6;">
-            <h3>Target: The Night Stalker</h3>
-            <p>1. Victim's laptop secured. Need to find where he hid the body.</p>
-            <p>2. Phone is locked. I need to use <b>Terminal</b> to force a connection.</p>
-            <p>3. Password hint is somewhere in the <b>Trash</b> bin.</p>
+        SYS.createWin('notes', '📝 Mission', `
+          <div style="padding:20px; color:#ddd; line-height:1.6;">
+            <h3>CASE FILE: NIGHT STALKER</h3>
+            <p>1. Victim's phone is locked. Hack it using <b>Scrcpy</b>.</p>
+            <p>2. You need to enable ADB in <b>Terminal</b>.</p>
+            <p>3. The password was deleted. Check the <b>Trash</b>.</p>
             <hr>
-            <p style="color:red">WARNING: He is watching the network.</p>
+            <p style="color:#ff003c">WARNING: Don't let him find you.</p>
           </div>
-        `);
+        `, 350, 400);
         break;
-        
+
       case 'trash':
-        SYS.createWin('trash', 'Recycle Bin', `
-          <div class="file-grid">
-            <div class="file-item"><div>📄</div>scan.pdf</div>
-            <div class="file-item" onclick="alert('File Corrupted')"><div>⚠️</div>virus.exe</div>
-            <div class="file-item" onclick="APP.showHint()"><div>📝</div>pass_hint.txt</div>
-          </div>
-        `);
-        break;
-
-      case 'pc':
-        SYS.createWin('pc', 'This PC', `
-          <div class="file-grid">
-            <div class="file-item"><div>💾</div>Local (C:)</div>
-            <div class="file-item" onclick="APP.open('gallery')"><div>📁</div>Pictures</div>
-            <div class="file-item"><div>📁</div>System</div>
-          </div>
-        `);
-        break;
-
-      case 'gallery':
-        SYS.createWin('gallery', 'Evidence Viewer', `
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; padding:10px;">
-            <div style="background:#222; height:100px; display:flex; align-items:center; justify-content:center;">No Signal</div>
-            <div style="background:#333; height:100px;"></div>
-            <div style="background:#111; grid-column:span 2; height:150px; display:flex; align-items:center; justify-content:center; color:#555;">
-              ${GAME.gps ? '<img src="https://maps.googleapis.com/maps/api/staticmap?center=40.714728,-73.998672&zoom=12&size=400x150&sensor=false&key=YOUR_KEY_HERE" alt="Lat: 66.6, Lon: 66.6" style="width:100%; opacity:0.6">' : 'MAP DATA MISSING'}
-            </div>
+        SYS.createWin('trash', '🗑️ Trash', `
+          <div style="padding:10px; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
+            <div onclick="alert('File corrupted.')" class="icon" style="width:100%"><div>📄</div>bad.txt</div>
+            <div onclick="alert('System File.')" class="icon" style="width:100%"><div>⚙️</div>sys.dll</div>
+            <div onclick="APP.showPass()" class="icon" style="width:100%"><div>🔑</div><b>system_pass.txt</b></div>
           </div>
         `);
         break;
 
       case 'terminal':
-        SYS.createWin('terminal', 'CMD.exe (Administrator)', `
-          <div class="term-body" onclick="document.getElementById('in').focus()">
-            <div>Microsoft Windows [Version 10.0.19045]<br>(c) Microsoft Corporation.<br><br>Type 'help' for commands.</div>
-            <div id="out"></div>
-            <div style="display:flex;">
-              <span>C:\\Users\\Admin&gt;&nbsp;</span>
-              <span id="txt"></span>
-              <span style="animation:glitch 1s infinite">_</span>
+        SYS.createWin('terminal', '📟 Terminal', `
+          <div class="term-wrap" onclick="document.getElementById('cmd').focus()">
+            <div>Windows PowerShell [v1.0]<br>(c) Microsoft Corporation.<br><br>Type 'help' for commands.</div>
+            <div id="history"></div>
+            <div style="display:flex; margin-top:5px;">
+              <span style="color:#ff003c">root@admin:~$&nbsp;</span>
+              <input id="cmd" style="background:transparent; border:none; color:#fff; font-family:monospace; flex:1; outline:none;" 
+                onkeydown="APP.handleCmd(event)" autocomplete="off">
             </div>
-            <input id="in" class="term-input" oninput="APP.termType(this)" onkeydown="APP.termEnter(event)">
           </div>
-        `, 600, 350);
+        `, 500, 350);
         break;
 
       case 'scrcpy':
         let content = GAME.phoneUnlocked ? `
-          <div class="phone-wrap">
-            <div class="phone-header"><span>LTE</span><span>11:34 PM</span></div>
-            <div class="msg-list">
-              <div class="msg in">The job is done.</div>
-              <div class="msg out">Did you clean up?</div>
-              <div class="msg in">Yeah. I buried it at the old mill.</div>
-              <div class="msg in">Coords sent to secure server.</div>
-              <div class="msg out" style="background:#555; cursor:pointer;" onclick="APP.foundGPS()">
-                <div>📍 <b>Shared Location</b></div>
-                <div style="font-size:10px; opacity:0.7">Click to download</div>
+          <div style="height:100%; display:flex; flex-direction:column; background:#111;">
+            <div style="padding:10px; background:#222; font-size:12px; display:flex; justify-content:space-between;">
+              <span>LTE</span><span>🔋 12%</span>
+            </div>
+            <div style="flex:1; padding:15px; display:flex; flex-direction:column; overflow-y:auto;">
+              <div class="msg-bubble">Where did you hide it?</div>
+              <div class="msg-bubble sent">The old warehouse.</div>
+              <div class="msg-bubble sent">Coordinates attached.</div>
+              <div class="msg-bubble" style="background:#444; cursor:pointer; border:1px solid #ff003c;" onclick="APP.hackGPS()">
+                <div>📍 <b>GPS_LOCATION.dat</b></div>
+                <small>(Tap to download)</small>
               </div>
             </div>
-            <div style="padding:15px; background:#222; text-align:center;">Type message...</div>
           </div>
         ` : `
-          <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; color:red;">
-            <div style="font-size:40px;">🔒</div>
-            <h3>DEVICE LOCKED</h3>
-            <p>ADB Debugging Unauthorized</p>
-            <p style="color:#666">Use Terminal to bridge connection.</p>
+          <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#ff003c; text-align:center;">
+            <div style="font-size:50px;">🔒</div>
+            <h2>DEVICE LOCKED</h2>
+            <p>ADB Debugging Unauthorized.</p>
+            <p style="color:#888; margin-top:10px;">Use Terminal to connect.</p>
           </div>
         `;
-        SYS.createWin('scrcpy', 'Pixel 6 - Scrcpy', content, 320, 580);
+        SYS.createWin('scrcpy', '📱 Pixel 6', content, 300, 550);
         break;
 
       case 'browser':
-        SYS.createWin('browser', 'Tor Browser', `
-          <div style="background:#333; padding:5px; color:#fff; font-size:12px;">URL: http://hidden-service.onion</div>
-          <div style="padding:20px; color:#ccc;">
-            <h1>Dark Net Search</h1>
-            ${GAME.gps ? '<h2 style="color:red">LOCATION CONFIRMED: THE OLD MILL</h2><p>Dispatching units...</p>' : '<p>Waiting for GPS coordinates...</p>'}
+        SYS.createWin('browser', '🌍 Tor Browser', `
+          <div style="background:#333; padding:5px; font-size:12px; color:#aaa;">onion://hidden-wiki/tracker</div>
+          <div style="padding:20px;">
+            <h2 style="color:#fff;">Dark Net Tracker</h2>
+            ${GAME.gpsUnlocked 
+              ? '<h1 style="color:#0f0;">TARGET LOCATED</h1><p>Location: Abandoned Warehouse, Sector 4.</p><p>Police dispatched.</p>' 
+              : '<p>Waiting for GPS signal...</p>'}
           </div>
         `);
         break;
         
       case 'music':
-        SYS.createWin('music', 'Media Player', `
-          <div style="text-align:center; padding:20px;">
-            <h3>Ambient_Track_01.mp3</h3>
-            <div style="height:4px; background:#333; margin:20px 0;"><div style="width:30%; height:100%; background:var(--accent);"></div></div>
-            <button onclick="SYS.playDrone()">▶ PLAY</button>
-            <button onclick="if(SYS.osc) SYS.osc.stop()">⏹ STOP</button>
+        SYS.createWin('music', '🎵 Player', `
+          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;">
+            <h3>Ambient Horror.mp3</h3>
+            <div style="margin:20px; font-size:30px; cursor:pointer;" onclick="SYS.toggleAudio()">⏯️</div>
+            <p>Click to Pause/Play</p>
           </div>
-        `, 300, 200);
+        `, 250, 200);
         break;
+
+      case 'pc': SYS.createWin('pc', '💻 This PC', '<div style="padding:20px;">C:\\ Drive<br><br>1.2TB Free</div>'); break;
+      case 'gallery': SYS.createWin('gallery', '📷 Gallery', '<div style="padding:20px;">No images found.</div>'); break;
     }
   },
 
   // GAME EVENTS
-  showHint: function() {
-    alert("pass_hint.txt: \n\n'The password is what comes for us all.'\n(5 letters, lowercase)");
+  showPass: function() {
+    alert("system_pass.txt\n\nAccess Code: 666");
   },
 
-  foundGPS: function() {
-    GAME.gps = true;
-    SYS.sfx('scare'); // Reward sound
+  hackGPS: function() {
     alert("DOWNLOADING GPS DATA...");
     setTimeout(() => {
-      alert("DOWNLOAD COMPLETE.\nCheck 'Evidence' or 'Browser'.");
-      APP.triggerHorror();
+      GAME.gpsUnlocked = true;
+      alert("DOWNLOAD COMPLETE.\nCheck 'Tor Browser' to view location.");
+      APP.triggerEnding();
     }, 1500);
   },
-
-  triggerHorror: function() {
-    // Endgame visuals
-    document.getElementById('desktop').style.filter = "hue-rotate(90deg) contrast(150%)";
-    SYS.sfx('scare');
-    setTimeout(() => alert("THEY KNOW YOU ARE HERE."), 2000);
+  
+  triggerEnding: function() {
+    setTimeout(() => {
+      document.getElementById('desktop').style.filter = "grayscale(100%) contrast(200%)";
+      alert("THEY ARE COMING. pls see my upscrolled account\n@Dittxz On Upscrolled");
+    }, 3000);
   },
 
-  // TERMINAL LOGIC
-  cmdHistory: [],
-  termType: function(el) {
-    document.getElementById('txt').innerText = el.value;
-  },
-  termEnter: function(e) {
-    if(e.key !== 'Enter') return;
-    const val = e.target.value.toLowerCase().trim();
-    const out = document.getElementById('out');
-    out.innerHTML += `<div>C:\\Users\\Admin> ${val}</div>`;
-    e.target.value = ''; document.getElementById('txt').innerText = '';
+  // TERMINAL COMMANDS
+  handleCmd: function(e) {
+    if(e.key === 'Enter') {
+      const val = e.target.value.trim();
+      const hist = document.getElementById('history');
+      hist.innerHTML += `<div><span style="color:#ff003c">root@admin:~$&nbsp;</span>${val}</div>`;
+      e.target.value = '';
 
-    if(val === 'help') {
-      out.innerHTML += `<div style="color:#aaa">COMMANDS: help, dir, adb connect, exit</div>`;
-    } 
-    else if(val === 'dir') {
-       out.innerHTML += `<div>log.txt<br>system32<br>personal</div>`;
-    }
-    else if(val === 'adb connect') {
-      out.innerHTML += `<div style="color:yellow">Input Admin Password:</div>`;
-      GAME.awaitingPass = true;
-    }
-    else if(GAME.awaitingPass) {
-      if(val === GAME.password) {
-        out.innerHTML += `<div style="color:#0f0">ACCESS GRANTED.<br>Bridge established.</div>`;
-        GAME.phoneUnlocked = true;
-        GAME.awaitingPass = false;
-        SYS.sfx('scare'); // Positive feedback sound actually
-        setTimeout(() => {
-            SYS.close('scrcpy');
-            APP.open('scrcpy'); // Reload app
-        }, 1000);
-      } else {
-        out.innerHTML += `<div style="color:red">ACCESS DENIED.</div>`;
-        SYS.sfx('err');
+      if(val === 'help') {
+        hist.innerHTML += `<div style="color:#888;">Available: help, adb connect, clear</div>`;
+      } 
+      else if(val === 'adb connect') {
+        // Simple Prompt
+        const pass = prompt("ENTER ACCESS CODE:");
+        if(pass === '666') {
+          hist.innerHTML += `<div style="color:#0f0;">ACCESS GRANTED.<br>Connected to Pixel 6.</div>`;
+          GAME.phoneUnlocked = true;
+          SYS.close('scrcpy'); // Close if open to refresh
+          setTimeout(() => APP.open('scrcpy'), 500);
+        } else {
+          hist.innerHTML += `<div style="color:red;">ACCESS DENIED.</div>`;
+        }
       }
-    }
-    else {
-      out.innerHTML += `<div style="color:red">Bad command or file name.</div>`;
+      else if(val === 'clear') {
+        hist.innerHTML = '';
+      }
+      else {
+        hist.innerHTML += `<div style="color:red;">Command not found.</div>`;
+      }
+      
+      // Auto scroll
+      e.target.parentElement.parentElement.scrollTop = e.target.parentElement.parentElement.scrollHeight;
     }
   }
 };
