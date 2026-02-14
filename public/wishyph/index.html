@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>WishyPhotos — Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{--bg:#000;--card:#111;--input:#1e1e1e;--border:#222;--border2:#333;
+           --txt:#fff;--txt2:#a0a0a0;--txt3:#666;--accent:#fe2c55;--accent2:#ff4472;
+           --glow:rgba(254,44,85,.3);--teal:#25f4ee}
+    html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt)}
+
+    .wrap{display:flex;align-items:center;justify-content:center;height:100%;padding:40px 30px}
+    .box{width:100%;max-width:360px;text-align:center}
+
+    .logo{font-size:42px;font-weight:900;letter-spacing:-1.5px;margin-bottom:6px}
+    .logo .a{color:var(--teal)}.logo .b{color:var(--accent)}
+    .tag{color:var(--txt3);font-size:14px;margin-bottom:50px}
+
+    .tabs{display:flex;background:var(--input);border-radius:14px;padding:4px;margin-bottom:32px}
+    .tab{flex:1;padding:12px;font-size:14px;font-weight:600;color:var(--txt3);
+         cursor:pointer;border-radius:11px;transition:.3s;border:none;background:none;font-family:inherit}
+    .tab.on{background:var(--accent);color:#fff;box-shadow:0 4px 20px var(--glow)}
+
+    form{display:flex;flex-direction:column;gap:14px}
+    input[type=text],input[type=password]{width:100%;padding:16px 18px;background:var(--input);
+      border:2px solid var(--border);border-radius:14px;color:var(--txt);font-size:15px;
+      font-family:inherit;outline:none;transition:.3s}
+    input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--glow)}
+    input::placeholder{color:var(--txt3)}
+
+    .signup-only{display:none;flex-direction:column;gap:14px}
+    .signup-only.show{display:flex}
+
+    .av-pick{width:90px;height:90px;border-radius:50%;background:var(--input);
+      border:3px dashed var(--border2);display:flex;align-items:center;justify-content:center;
+      margin:0 auto 10px;cursor:pointer;overflow:hidden;transition:.3s}
+    .av-pick:hover{border-color:var(--accent)}
+    .av-pick img{width:100%;height:100%;object-fit:cover}
+    .av-pick .ph{font-size:32px;color:var(--txt3)}
+
+    .btn{padding:16px;background:var(--accent);color:#fff;border:none;border-radius:14px;
+      font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:.3s;margin-top:6px}
+    .btn:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 8px 30px var(--glow)}
+
+    .msg{font-size:13px;margin-top:8px;min-height:20px;font-weight:500}
+    .msg.err{color:var(--accent)}.msg.ok{color:var(--teal)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="box">
+      <div class="logo"><span class="a">Wishy</span><span class="b">Photos</span></div>
+      <p class="tag">Scroll. Discover. Share your moments.</p>
+
+      <div class="tabs">
+        <button class="tab on" id="tabLogin" onclick="switchTab('login')">Log In</button>
+        <button class="tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+      </div>
+
+      <form id="authForm" onsubmit="handleAuth(event)">
+        <div class="signup-only" id="extras">
+          <div class="av-pick" id="avPick" onclick="document.getElementById('avFile').click()">
+            <span class="ph">📷</span>
+          </div>
+          <input type="file" id="avFile" accept="image/*" hidden>
+          <input type="text" id="dispName" placeholder="Display Name">
+        </div>
+
+        <input type="text" id="user" placeholder="Username" required>
+        <input type="password" id="pass" placeholder="Password" required>
+        <button class="btn" id="submitBtn" type="submit">Log In</button>
+        <div class="msg" id="msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <script src="core.js"></script>
+  <script>
+    // If already logged in, redirect
+    if (getSession()) goTo('feed.html');
+
+    let mode = 'login';
+    let avatarData = null;
+
+    document.getElementById('avFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      avatarData = await fileToBase64(file);
+      const pick = document.getElementById('avPick');
+      pick.innerHTML = `<img src="${avatarData}" alt="">`;
+    });
+
+    function switchTab(tab) {
+      mode = tab;
+      document.getElementById('tabLogin').className = tab === 'login' ? 'tab on' : 'tab';
+      document.getElementById('tabSignup').className = tab === 'signup' ? 'tab on' : 'tab';
+      document.getElementById('extras').className = tab === 'signup' ? 'signup-only show' : 'signup-only';
+      document.getElementById('submitBtn').textContent = tab === 'login' ? 'Log In' : 'Create Account';
+      document.getElementById('msg').textContent = '';
+    }
+
+    async function handleAuth(e) {
+      e.preventDefault();
+      const username = document.getElementById('user').value.trim().toLowerCase();
+      const password = document.getElementById('pass').value;
+      const msg = document.getElementById('msg');
+
+      if (username.length < 3) { msg.className='msg err'; msg.textContent='Username must be 3+ chars'; return; }
+      if (password.length < 4) { msg.className='msg err'; msg.textContent='Password must be 4+ chars'; return; }
+
+      const db = getDB();
+      const hashed = await hashPassword(password);
+
+      if (mode === 'signup') {
+        if (db.users.find(u => u.username === username)) {
+          msg.className='msg err'; msg.textContent='Username already taken'; return;
+        }
+        const displayName = document.getElementById('dispName').value.trim() || username;
+        const newUser = {
+          id: db.nextUserId++,
+          username,
+          password: hashed,
+          displayName,
+          avatar: avatarData || null,
+          bio: '',
+          followers: [],
+          following: [],
+          likedPosts: [],
+          createdAt: Date.now()
+        };
+        db.users.push(newUser);
+        saveDB(db);
+        setSession(newUser);
+        goTo('feed.html');
+      } else {
+        const user = db.users.find(u => u.username === username && u.password === hashed);
+        if (!user) { msg.className='msg err'; msg.textContent='Invalid username or password'; return; }
+        setSession(user);
+        goTo('feed.html');
+      }
+    }
+  </script>
+</body>
+</html>

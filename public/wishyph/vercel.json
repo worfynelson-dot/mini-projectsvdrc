@@ -1,0 +1,22 @@
+{
+  "rewrites": [
+    {
+      "source": "/wishyPhotos",
+      "destination": "/wishyPhotos/index.html"
+    },
+    {
+      "source": "/wishyPhotos/",
+      "destination": "/wishyPhotos/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "PUT,POST,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "*" }
+      ]
+    }
+  ]
+}

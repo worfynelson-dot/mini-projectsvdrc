@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>WishyPhotos — New Post</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{--bg:#000;--card:#111;--input:#1e1e1e;--border:#222;--border2:#333;
+           --txt:#fff;--txt2:#a0a0a0;--txt3:#666;--accent:#fe2c55;--teal:#25f4ee;
+           --glow:rgba(254,44,85,.3)}
+    html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt)}
+
+    .page{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+
+    .top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
+      border-bottom:1px solid var(--border)}
+    .back{width:36px;height:36px;border-radius:50%;background:var(--input);border:none;
+      color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .top h2{font-size:18px;font-weight:700}
+    .top .spacer{width:36px}
+
+    .body{flex:1;overflow-y:auto;padding:24px 20px}
+
+    .zone{width:100%;aspect-ratio:4/5;border:2px dashed var(--border2);border-radius:20px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;
+      transition:.3s;overflow:hidden;background:var(--input);position:relative}
+    .zone:hover{border-color:var(--accent);background:rgba(254,44,85,.05)}
+    .zone.has{border:none}
+    .zone img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0}
+    .zone .ph{text-align:center}
+    .zone .ph .ic{font-size:56px;margin-bottom:12px}
+    .zone .ph p{color:var(--txt2);font-size:14px}
+    .zone .ph .sm{font-size:12px;color:var(--txt3);margin-top:4px}
+
+    textarea{width:100%;padding:14px 16px;background:var(--input);border:2px solid var(--border);
+      border-radius:14px;color:var(--txt);font-size:15px;font-family:inherit;resize:none;
+      height:80px;outline:none;margin-top:18px;transition:.3s}
+    textarea::placeholder{color:var(--txt3)}
+    textarea:focus{border-color:var(--accent)}
+
+    .prog{display:none;margin-top:14px;text-align:center}
+    .prog.show{display:block}
+    .prog-bg{width:100%;height:6px;background:var(--input);border-radius:3px;overflow:hidden;margin-bottom:8px}
+    .prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--accent));
+      border-radius:3px;width:0%;transition:width .3s}
+    .prog-txt{font-size:12px;color:var(--txt2)}
+
+    .submit{width:100%;margin-top:18px;padding:16px;background:var(--accent);color:#fff;border:none;
+      border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:.3s}
+    .submit:disabled{opacity:.4;cursor:not-allowed}
+    .submit:not(:disabled):hover{box-shadow:0 8px 30px var(--glow)}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="top">
+      <button class="back" onclick="goTo('feed.html')">←</button>
+      <h2>New Post</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="body">
+      <div class="zone" id="zone" onclick="document.getElementById('fileIn').click()">
+        <div class="ph" id="ph">
+          <div class="ic">📸</div>
+          <p>Tap to choose a photo</p>
+          <p class="sm">JPG, PNG, WebP — up to 10MB</p>
+        </div>
+      </div>
+      <input type="file" id="fileIn" accept="image/*" hidden>
+
+      <textarea id="caption" placeholder="Write a caption..."></textarea>
+
+      <div class="prog" id="prog">
+        <div class="prog-bg"><div class="prog-fill" id="progFill"></div></div>
+        <div class="prog-txt" id="progTxt">Uploading...</div>
+      </div>
+
+      <button class="submit" id="submitBtn" disabled onclick="submitPost()">Share Photo</button>
+    </div>
+  </div>
+
+  <script src="core.js"></script>
+  <script>
+    if (!requireAuth()) throw 'redirect';
+
+    let selectedFile = null;
+    let previewUrl = null;
+
+    const fileIn = document.getElementById('fileIn');
+    const zone = document.getElementById('zone');
+    const ph = document.getElementById('ph');
+    const submitBtn = document.getElementById('submitBtn');
+
+    fileIn.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('File too large (max 10MB)', 'error');
+        return;
+      }
+      selectedFile = file;
+      const url = URL.createObjectURL(file);
+      previewUrl = url;
+
+      // Show preview
+      let img = zone.querySelector('img');
+      if (!img) {
+        img = document.createElement('img');
+        zone.appendChild(img);
+      }
+      img.src = url;
+      zone.classList.add('has');
+      ph.style.display = 'none';
+      submitBtn.disabled = false;
+    });
+
+    async function submitPost() {
+      if (!selectedFile) return;
+      const me = getCurrentUser();
+      if (!me) { goTo('index.html'); return; }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Uploading...';
+      const prog = document.getElementById('prog');
+      const progFill = document.getElementById('progFill');
+      const progTxt = document.getElementById('progTxt');
+      prog.classList.add('show');
+
+      let imageUrl;
+      try {
+        imageUrl = await uploadImageToBlob(selectedFile, (pct) => {
+          progFill.style.width = pct + '%';
+          progTxt.textContent = pct + '% uploaded...';
+        });
+      } catch (err) {
+        // Fallback to base64
+        imageUrl = await fileToBase64(selectedFile);
+        progFill.style.width = '100%';
+      }
+
+      progTxt.textContent = 'Saving post...';
+      progFill.style.width = '100%';
+
+      const caption = document.getElementById('caption').value.trim();
+      const db = getDB();
+      const post = {
+        id: db.nextPostId++,
+        userId: me.id,
+        imageUrl,
+        caption,
+        likes: [],
+        comments: [],
+        createdAt: Date.now()
+      };
+      db.posts.push(post);
+      saveDB(db);
+
+      showToast('Photo shared! 🎉');
+      setTimeout(() => goTo('feed.html'), 800);
+    }
+  </script>
+</body>
+</html>

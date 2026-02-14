@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>WishyPhotos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    :root{--bg:#000;--accent:#fe2c55;--teal:#25f4ee;--glow:rgba(254,44,85,.3)}
+    html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:#fff}
+    ::-webkit-scrollbar{width:0;height:0}
+
+    #app{width:100%;height:100%;max-width:480px;margin:0 auto;position:relative;overflow:hidden}
+
+    /* Header */
+    .hdr{position:absolute;top:0;left:0;right:0;z-index:100;padding:16px 20px;
+      display:flex;justify-content:space-between;align-items:center;
+      background:linear-gradient(to bottom,rgba(0,0,0,.8),transparent);pointer-events:none}
+    .hdr>*{pointer-events:all}
+    .hdr h1{font-size:22px;font-weight:800;letter-spacing:-.5px}
+    .hdr h1 .a{color:var(--teal)}.hdr h1 .b{color:var(--accent)}
+    .hdr-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.1);
+      backdrop-filter:blur(20px);border:none;color:#fff;font-size:18px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center}
+
+    /* Feed */
+    .feed{width:100%;height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;
+      -webkit-overflow-scrolling:touch}
+
+    .card{width:100%;height:100%;scroll-snap-align:start;scroll-snap-stop:always;
+      position:relative;display:flex;align-items:center;justify-content:center;
+      background:var(--bg);flex-shrink:0}
+    .card img.photo{width:100%;height:100%;object-fit:cover}
+
+    /* Actions sidebar */
+    .acts{position:absolute;right:14px;bottom:120px;display:flex;flex-direction:column;
+      align-items:center;gap:20px;z-index:10}
+    .act{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+    .act-c{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.1);
+      backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;
+      font-size:22px;transition:.3s;border:none;color:#fff}
+    .act-c:active{transform:scale(.85)}
+    .act-c.liked{background:var(--accent);box-shadow:0 4px 20px var(--glow)}
+    .act-n{font-size:11px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+
+    /* Info overlay */
+    .info{position:absolute;bottom:0;left:0;right:70px;padding:20px 16px 30px;
+      background:linear-gradient(to top,rgba(0,0,0,.8),transparent);z-index:5}
+    .info-user{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .info-av{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff}
+    .info-name{font-weight:700;font-size:15px}
+    .info-follow{margin-left:8px;padding:4px 14px;border-radius:6px;background:var(--accent);
+      color:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+    .info-follow.on{background:rgba(255,255,255,.15)}
+    .info-cap{font-size:14px;line-height:1.4;color:rgba(255,255,255,.9);
+      display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+    .info-time{font-size:11px;color:rgba(255,255,255,.5);margin-top:6px}
+
+    /* Empty */
+    .empty{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;padding:40px;text-align:center}
+    .empty .icon{font-size:80px;margin-bottom:20px;opacity:.6}
+    .empty h2{font-size:24px;font-weight:800;margin-bottom:10px}
+    .empty p{color:#a0a0a0;font-size:14px;line-height:1.5;margin-bottom:30px}
+    .empty button{padding:14px 36px;background:var(--accent);color:#fff;border:none;
+      border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;
+      box-shadow:0 8px 30px var(--glow)}
+
+    /* Double-tap heart */
+    .dbl-heart{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+      font-size:100px;z-index:50;pointer-events:none;filter:drop-shadow(0 4px 20px rgba(254,44,85,.6))}
+    .dbl-heart.pop{animation:hpop .8s cubic-bezier(.16,1,.3,1) forwards}
+    @keyframes hpop{
+      0%{transform:translate(-50%,-50%) scale(0);opacity:1}
+      50%{transform:translate(-50%,-50%) scale(1.2);opacity:1}
+      100%{transform:translate(-50%,-50%) scale(1);opacity:0}
+    }
+
+    /* Bottom Nav */
+    .nav{position:absolute;bottom:0;left:0;right:0;height:70px;background:rgba(0,0,0,.95);
+      backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,.05);
+      display:flex;align-items:center;justify-content:space-around;padding-bottom:8px;z-index:200}
+    .nav button{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;
+      padding:8px 16px;border:none;background:none;color:#666;font-family:inherit;transition:.3s}
+    .nav button.on{color:#fff}
+    .nav .ni{font-size:24px}
+    .nav .nl{font-size:10px;font-weight:600}
+    .nav .plus{width:48px;height:34px;border-radius:10px;
+      background:linear-gradient(135deg,var(--teal),var(--accent));
+      display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;
+      box-shadow:0 4px 20px rgba(254,44,85,.4)}
+
+    /* Comments panel */
+    .cmt-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,.85);z-index:600;align-items:flex-end;justify-content:center}
+    .cmt-overlay.show{display:flex;animation:fi .3s ease}
+    @keyframes fi{from{opacity:0}to{opacity:1}}
+    .cmt-sheet{width:100%;max-width:480px;height:65vh;background:#111;
+      border-radius:24px 24px 0 0;display:flex;flex-direction:column;
+      animation:su .4s cubic-bezier(.16,1,.3,1)}
+    @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .cmt-handle{width:40px;height:4px;border-radius:2px;background:#333;margin:12px auto}
+    .cmt-top{padding:10px 20px 14px;border-bottom:1px solid #222;
+      display:flex;justify-content:space-between;align-items:center}
+    .cmt-top h3{font-size:16px;font-weight:700}
+    .cmt-close{width:34px;height:34px;border-radius:50%;background:#1e1e1e;border:none;
+      color:#a0a0a0;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .cmt-list{flex:1;overflow-y:auto;padding:14px 20px}
+    .cmt-item{display:flex;gap:12px;margin-bottom:18px}
+    .cmt-av{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0}
+    .cmt-body{flex:1}
+    .cmt-un{font-size:13px;font-weight:700;margin-bottom:2px}
+    .cmt-txt{font-size:14px;color:#a0a0a0;line-height:1.4}
+    .cmt-time{font-size:11px;color:#666;margin-top:4px}
+    .cmt-none{text-align:center;padding:40px;color:#666;font-size:14px}
+    .cmt-input{padding:12px 20px;border-top:1px solid #222;display:flex;gap:10px;align-items:center}
+    .cmt-input input{flex:1;padding:12px 16px;background:#1e1e1e;border:2px solid #222;
+      border-radius:24px;color:#fff;font-size:14px;font-family:inherit;outline:none}
+    .cmt-input input:focus{border-color:var(--accent)}
+    .cmt-send{width:40px;height:40px;border-radius:50%;background:var(--accent);border:none;
+      color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="hdr">
+      <h1><span class="a">Wishy</span><span class="b">Photos</span></h1>
+      <button class="hdr-btn" onclick="loadFeed()" title="Refresh">🔄</button>
+    </div>
+
+    <div class="feed" id="feed"></div>
+
+    <div class="nav">
+      <button class="on"><span class="ni">🏠</span><span class="nl">Home</span></button>
+      <button onclick="goTo('search.html')"><span class="ni">🔍</span><span class="nl">Discover</span></button>
+      <button onclick="goTo('upload.html')"><div class="plus">+</div></button>
+      <button onclick="goTo('profile.html')"><span class="ni">👤</span><span class="nl">Profile</span></button>
+    </div>
+  </div>
+
+  <!-- Comments -->
+  <div class="cmt-overlay" id="cmtPanel">
+    <div class="cmt-sheet">
+      <div class="cmt-handle"></div>
+      <div class="cmt-top">
+        <h3 id="cmtTitle">Comments</h3>
+        <button class="cmt-close" onclick="closeCmt()">✕</button>
+      </div>
+      <div class="cmt-list" id="cmtList"></div>
+      <div class="cmt-input">
+        <input id="cmtInput" placeholder="Add a comment..." onkeydown="if(event.key==='Enter')postCmt()">
+        <button class="cmt-send" onclick="postCmt()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="core.js"></script>
+  <script>
+    if (!requireAuth()) throw 'redirect';
+
+    let currentCmtPostId = null;
+
+    function loadFeed() {
+      const db = getDB();
+      const me = getCurrentUser();
+      const feed = document.getElementById('feed');
+
+      // Sort posts newest first
+      const posts = [...db.posts].sort((a, b) => b.createdAt - a.createdAt);
+
+      if (posts.length === 0) {
+        feed.innerHTML = `
+          <div class="empty">
+            <div class="icon">📷</div>
+            <h2>No Photos Yet</h2>
+            <p>Be the first to share a photo!<br>Tap the + button to post.</p>
+            <button onclick="goTo('upload.html')">Share a Photo</button>
+          </div>`;
+        return;
+      }
+
+      feed.innerHTML = posts.map(post => {
+        const author = db.users.find(u => u.id === post.userId) || {};
+        const liked = me && post.likes.includes(me.id);
+        const isMe = me && me.id === post.userId;
+        const isFollowing = me && me.following && me.following.includes(post.userId);
+
+        return `
+          <div class="card" data-id="${post.id}">
+            <img class="photo" src="${post.imageUrl}" alt="" loading="lazy">
+            <div class="dbl-heart" id="heart-${post.id}">❤️</div>
+
+            <div class="acts">
+              <div class="act" onclick="toggleLike(${post.id})">
+                <div class="act-c ${liked ? 'liked' : ''}" id="like-btn-${post.id}">${liked ? '❤️' : '🤍'}</div>
+                <span class="act-n" id="like-cnt-${post.id}">${formatNum(post.likes.length)}</span>
+              </div>
+              <div class="act" onclick="openCmt(${post.id})">
+                <div class="act-c">💬</div>
+                <span class="act-n" id="cmt-cnt-${post.id}">${formatNum((post.comments||[]).length)}</span>
+              </div>
+              <div class="act" onclick="sharePost(${post.id})">
+                <div class="act-c">↗️</div>
+                <span class="act-n">Share</span>
+              </div>
+            </div>
+
+            <div class="info">
+              <div class="info-user">
+                <img class="info-av" src="${getAvatar(author)}" alt="">
+                <span class="info-name">@${author.username || 'unknown'}</span>
+                ${!isMe ? `<button class="info-follow ${isFollowing ? 'on' : ''}"
+                  onclick="toggleFollow(${post.userId}, this)">${isFollowing ? 'Following' : 'Follow'}</button>` : ''}
+              </div>
+              ${post.caption ? `<div class="info-cap">${escapeHTML(post.caption)}</div>` : ''}
+              <div class="info-time">${timeAgo(post.createdAt)}</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      // Double-tap to like
+      document.querySelectorAll('.card').forEach(card => {
+        let lastTap = 0;
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.acts') || e.target.closest('.info-follow')) return;
+          const now = Date.now();
+          if (now - lastTap < 300) {
+            const postId = parseInt(card.dataset.id);
+            toggleLike(postId);
+            const heart = document.getElementById('heart-' + postId);
+            heart.classList.remove('pop');
+            void heart.offsetWidth;
+            heart.classList.add('pop');
+          }
+          lastTap = now;
+        });
+      });
+    }
+
+    function escapeHTML(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function toggleLike(postId) {
+      const me = getCurrentUser();
+      if (!me) return;
+      const db = getDB();
+      const post = db.posts.find(p => p.id === postId);
+      if (!post) return;
+
+      const idx = post.likes.indexOf(me.id);
+      if (idx === -1) {
+        post.likes.push(me.id);
+      } else {
+        post.likes.splice(idx, 1);
+      }
+      saveDB(db);
+
+      // Update UI
+      const btn = document.getElementById('like-btn-' + postId);
+      const cnt = document.getElementById('like-cnt-' + postId);
+      if (btn) {
+        const liked = post.likes.includes(me.id);
+        btn.className = 'act-c' + (liked ? ' liked' : '');
+        btn.textContent = liked ? '❤️' : '🤍';
+      }
+      if (cnt) cnt.textContent = formatNum(post.likes.length);
+    }
+
+    function toggleFollow(userId, el) {
+      const me = getCurrentUser();
+      if (!me || me.id === userId) return;
+      const db = getDB();
+      const meDB = db.users.find(u => u.id === me.id);
+      const them = db.users.find(u => u.id === userId);
+      if (!meDB || !them) return;
+
+      if (!meDB.following) meDB.following = [];
+      if (!them.followers) them.followers = [];
+
+      const idx = meDB.following.indexOf(userId);
+      if (idx === -1) {
+        meDB.following.push(userId);
+        them.followers.push(me.id);
+        if (el) { el.textContent = 'Following'; el.classList.add('on'); }
+        showToast('Followed @' + them.username);
+      } else {
+        meDB.following.splice(idx, 1);
+        const fi = them.followers.indexOf(me.id);
+        if (fi !== -1) them.followers.splice(fi, 1);
+        if (el) { el.textContent = 'Follow'; el.classList.remove('on'); }
+      }
+      saveDB(db);
+    }
+
+    function sharePost(postId) {
+      const url = window.location.origin + BASE_PATH + '/feed.html#post-' + postId;
+      if (navigator.share) {
+        navigator.share({ title: 'WishyPhotos', url });
+      } else {
+        navigator.clipboard.writeText(url);
+        showToast('Link copied!');
+      }
+    }
+
+    // ── Comments ──
+    function openCmt(postId) {
+      currentCmtPostId = postId;
+      const db = getDB();
+      const post = db.posts.find(p => p.id === postId);
+      if (!post) return;
+
+      const list = document.getElementById('cmtList');
+      const comments = post.comments || [];
+      document.getElementById('cmtTitle').textContent = `${comments.length} Comment${comments.length !== 1 ? 's' : ''}`;
+
+      if (comments.length === 0) {
+        list.innerHTML = '<div class="cmt-none">No comments yet. Be the first!</div>';
+      } else {
+        list.innerHTML = comments.map(c => {
+          const u = db.users.find(x => x.id === c.userId) || {};
+          return `
+            <div class="cmt-item">
+              <img class="cmt-av" src="${getAvatar(u)}" alt="">
+              <div class="cmt-body">
+                <div class="cmt-un">@${u.username || 'unknown'}</div>
+                <div class="cmt-txt">${escapeHTML(c.text)}</div>
+                <div class="cmt-time">${timeAgo(c.createdAt)}</div>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      document.getElementById('cmtPanel').classList.add('show');
+      document.getElementById('cmtInput').focus();
+    }
+
+    function closeCmt() {
+      document.getElementById('cmtPanel').classList.remove('show');
+      currentCmtPostId = null;
+    }
+
+    function postCmt() {
+      if (!currentCmtPostId) return;
+      const me = getCurrentUser();
+      if (!me) return;
+      const input = document.getElementById('cmtInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const db = getDB();
+      const post = db.posts.find(p => p.id === currentCmtPostId);
+      if (!post) return;
+      if (!post.comments) post.comments = [];
+      post.comments.push({ userId: me.id, text, createdAt: Date.now() });
+      saveDB(db);
+
+      input.value = '';
+      openCmt(currentCmtPostId);
+
+      // Update count on feed
+      const cnt = document.getElementById('cmt-cnt-' + currentCmtPostId);
+      if (cnt) cnt.textContent = formatNum(post.comments.length);
+    }
+
+    // Close comments on overlay click
+    document.getElementById('cmtPanel').addEventListener('click', (e) => {
+      if (e.target.id === 'cmtPanel') closeCmt();
+    });
+
+    loadFeed();
+  </script>
+</body>
+</html>

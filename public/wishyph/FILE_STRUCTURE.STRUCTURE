@@ -1,0 +1,11 @@
+public/
+  wishyPhotos/
+    index.html          (login/signup)
+    feed.html           (main TikTok-style feed)
+    profile.html        (user profile)
+    search.html         (discover/explore)
+    upload.html         (post creation)
+    core.js             (shared logic)
+    account.database
+api/
+  upload.js             (Vercel Blob serverless function)
