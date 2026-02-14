@@ -3,494 +3,432 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DEAD_OS // Windows 11 Horror</title>
+<title>DEAD_OS // Investigation Unit</title>
 <style>
-  /* --- CORE CSS --- */
-  :root { --win-bg: rgba(20, 20, 20, 0.85); --accent: #00ff41; --glass: blur(15px); }
-  * { box-sizing: border-box; user-select: none; -webkit-user-select: none; cursor: none; touch-action: none; }
-  body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; color: #fff; height: 100vh; }
+  :root { --accent: #00ff41; --bg: #121212; --glass: rgba(20,20,20,0.85); }
+  * { box-sizing: border-box; user-select: none; cursor: default; }
+  body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; color: #eee; }
   
-  /* --- DESKTOP ENVIRONMENT --- */
+  /* WALLPAPER & FX */
   #desktop {
-    width: 100vw; height: 100vh; position: relative; z-index: 1;
-    background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%);
-    transition: filter 0.2s;
+    width: 100vw; height: 100vh; position: relative;
+    background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop') no-repeat center center/cover;
+    transition: filter 0.5s;
   }
-  #wallpaper {
-    position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0.2;
-    background-image: linear-gradient(0deg, transparent 24%, rgba(0, 255, 0, .03) 25%, rgba(0, 255, 0, .03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .03) 75%, rgba(0, 255, 0, .03) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 0, .03) 25%, rgba(0, 255, 0, .03) 26%, transparent 27%, transparent 74%, rgba(0, 255, 0, .03) 75%, rgba(0, 255, 0, .03) 76%, transparent 77%, transparent);
-    background-size: 50px 50px;
+  #desktop::after {
+    content:''; position:absolute; top:0; left:0; width:100%; height:100%;
+    background: radial-gradient(circle, transparent 40%, #000 100%); pointer-events: none;
   }
+  .glitch-fx { animation: glitch 0.2s infinite; filter: hue-rotate(90deg); }
+  @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-2px, 2px); } 40% { transform: translate(2px, -2px); } 60% { transform: translate(0); } }
 
-  /* --- ICONS --- */
-  .icon-grid { display: flex; flex-direction: column; flex-wrap: wrap; height: 90vh; padding: 10px; align-content: flex-start; }
-  .app-icon {
-    width: 80px; height: 90px; margin: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    border-radius: 5px; transition: 0.2s; text-shadow: 0 2px 4px #000;
+  /* ICONS */
+  .icon-grid { padding: 20px; display: flex; flex-direction: column; flex-wrap: wrap; height: 90vh; align-content: flex-start; gap: 15px; z-index: 10; position: relative; }
+  .icon {
+    width: 80px; text-align: center; padding: 10px; border-radius: 5px; transition: 0.2s;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.8); cursor: pointer;
   }
-  .app-icon:hover { background: rgba(255,255,255,0.1); }
-  .app-icon div { font-size: 32px; margin-bottom: 5px; filter: drop-shadow(0 0 5px rgba(0,255,0,0.5)); }
-  .app-icon span { font-size: 12px; text-align: center; }
+  .icon:hover { background: rgba(255,255,255,0.1); }
+  .icon div { font-size: 36px; margin-bottom: 5px; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
+  .icon span { font-size: 13px; font-weight: 500; }
 
-  /* --- WINDOWS (Glassmorphism) --- */
+  /* WINDOWS */
   .window {
-    position: absolute; background: var(--win-bg); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    position: absolute; background: var(--glass); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     display: flex; flex-direction: column; overflow: hidden; min-width: 300px; min-height: 200px;
-    animation: popIn 0.2s ease-out;
+    animation: openWin 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   }
-  @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes openWin { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  
   .title-bar {
-    height: 35px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between;
-    padding: 0 10px; cursor: grab; border-bottom: 1px solid rgba(255,255,255,0.05);
+    height: 32px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px; cursor: grab; border-bottom: 1px solid rgba(255,255,255,0.05);
   }
   .title-bar:active { cursor: grabbing; }
-  .win-controls div { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-left: 8px; cursor: pointer; }
-  .close-btn { background: #ff5f56; } .min-btn { background: #ffbd2e; } .max-btn { background: #27c93f; }
-  .win-content { flex: 1; padding: 15px; overflow: auto; font-family: 'Consolas', monospace; font-size: 14px; position: relative; }
-
-  /* --- APP SPECIFIC UI --- */
-  /* Terminal */
-  .terminal-text { color: #0f0; line-height: 1.5; }
-  .cursor-blink { animation: blink 1s infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
+  .controls { display: flex; gap: 8px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
+  .cls { background: #ff5f57; } .min { background: #febc2e; } .max { background: #28c840; }
   
-  /* Scrcpy Phone Mirror */
-  .phone-frame {
-    width: 280px; height: 500px; margin: 0 auto; background: #000; border: 4px solid #333; border-radius: 20px;
-    position: relative; overflow: hidden; display: flex; flex-direction: column;
-  }
-  .phone-screen { flex: 1; background: #111; padding: 10px; overflow-y: auto; }
-  .chat-bubble { background: #333; padding: 8px; border-radius: 10px; margin-bottom: 8px; font-size: 12px; max-width: 80%; }
-  .chat-sent { align-self: flex-end; background: #005c4b; margin-left: auto; }
-  .chat-img { width: 100%; border-radius: 5px; opacity: 0.7; }
+  .content { flex: 1; overflow: auto; padding: 0; position: relative; }
   
-  /* --- TASKBAR --- */
+  /* TASKBAR */
   #taskbar {
-    position: absolute; bottom: 0; width: 100%; height: 45px; background: rgba(10,10,10,0.9);
-    backdrop-filter: blur(20px); display: flex; align-items: center; padding: 0 10px; z-index: 900;
-    border-top: 1px solid rgba(255,255,255,0.1);
+    position: absolute; bottom: 0; width: 100%; height: 48px; background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(20px); display: flex; align-items: center; padding: 0 15px; border-top: 1px solid rgba(255,255,255,0.1); z-index: 999;
   }
-  #start-btn { font-size: 20px; margin-right: 15px; padding: 5px; border-radius: 4px; transition: 0.2s; }
-  #start-btn:hover { background: rgba(255,255,255,0.1); box-shadow: 0 0 10px #00ff41; }
-  .task-icon {
-    width: 35px; height: 35px; background: rgba(255,255,255,0.1); margin-right: 5px; border-radius: 4px;
-    display: flex; align-items: center; justify-content: center; border-bottom: 2px solid transparent; transition: 0.2s;
+  #start { font-size: 22px; margin-right: 20px; transition: 0.2s; cursor: pointer; filter: grayscale(1); }
+  #start:hover { filter: grayscale(0); transform: scale(1.1); }
+  .task {
+    width: 40px; height: 40px; margin-right: 8px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    transition: 0.2s; cursor: pointer; position: relative;
   }
-  .task-icon.active { border-bottom: 2px solid var(--accent); background: rgba(255,255,255,0.15); }
-  #clock { margin-left: auto; font-size: 12px; }
+  .task:hover { background: rgba(255,255,255,0.1); }
+  .task.active { background: rgba(255,255,255,0.15); box-shadow: inset 0 -2px 0 var(--accent); }
+  #clock { margin-left: auto; font-size: 12px; font-weight: 600; color: #ccc; }
 
-  /* --- HORROR & OVERLAYS --- */
-  #cursor {
-    position: fixed; width: 20px; height: 20px; border: 2px solid var(--accent); border-radius: 50%;
-    pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); mix-blend-mode: difference;
-    box-shadow: 0 0 10px var(--accent); transition: width 0.1s, height 0.1s;
-  }
-  .glitch-overlay {
-    position: fixed; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 800; display: none;
-    background: repeating-linear-gradient(0deg, rgba(255,0,0,0.1), rgba(255,0,0,0.1) 2px, transparent 2px, transparent 4px);
-    mix-blend-mode: overlay;
-  }
-  #start-overlay {
-    position: fixed; top:0; left:0; width:100%; height:100%; background: #000; z-index: 10000;
-    display: flex; align-items: center; justify-content: center; flex-direction: column; cursor: pointer !important;
-  }
-  #start-overlay h1 { color: #f00; text-shadow: 0 0 20px #f00; font-family: monospace; letter-spacing: 5px; }
+  /* APP STYLES */
+  .term-body { background: #0c0c0c; color: #ccc; font-family: 'Consolas', monospace; padding: 10px; height: 100%; font-size: 14px; }
+  .term-input { background: transparent; border: none; color: transparent; width: 1px; height: 1px; }
+  .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); padding: 10px; gap: 10px; }
+  .file-item { text-align: center; cursor: pointer; padding: 10px; border-radius: 4px; }
+  .file-item:hover { background: rgba(255,255,255,0.1); }
   
-  /* Mobile Adjustments */
-  @media (max-width: 600px) {
-    .window { width: 95vw !important; left: 2.5vw !important; top: 5vh !important; height: 80vh !important; }
-    .icon-grid { flex-direction: row; }
-    .app-icon { width: 70px; margin: 5px; }
+  /* PHONE EMULATOR */
+  .phone-wrap { width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; }
+  .phone-header { padding: 10px; background: #222; display: flex; justify-content: space-between; font-size: 12px; }
+  .msg-list { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; background: #111; }
+  .msg { padding: 8px 12px; border-radius: 15px; max-width: 80%; font-size: 13px; }
+  .msg.in { background: #333; align-self: flex-start; border-bottom-left-radius: 2px; }
+  .msg.out { background: #005c4b; align-self: flex-end; border-bottom-right-radius: 2px; }
+  
+  /* START OVERLAY */
+  #overlay {
+    position: fixed; top:0; left:0; width:100%; height:100%; background: #000; z-index: 10000;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
   }
+  button { padding: 15px 30px; background: var(--accent); border: none; font-weight: bold; font-size: 16px; cursor: pointer; letter-spacing: 2px; }
+
+  @media (max-width: 600px) { .window { width: 96% !important; left: 2% !important; top: 50px !important; height: 80% !important; } }
 </style>
 </head>
 <body>
 
-<!-- Custom Mouse -->
-<div id="cursor"></div>
-
-<!-- Audio Start Screen -->
-<div id="start-overlay" onclick="startGame()">
-  <h1>HACKED_SHADOWS</h1>
-  <p style="color:#666; margin-top:20px;">[ CLICK TO INITIALIZE SYSTEM ]</p>
-  <p style="color:#444; font-size: 12px;">Headphones Recommended</p>
+<div id="overlay">
+  <h1 style="color:#fff; letter-spacing:5px;">DEAD_OS</h1>
+  <p style="color:#666; margin-bottom:30px;">CASE FILE: #992-AX // NIGHT STALKER</p>
+  <button onclick="SYS.boot()">INITIALIZE SYSTEM</button>
 </div>
 
-<!-- Game Container -->
 <div id="desktop">
-  <div id="wallpaper"></div>
-  <div class="glitch-overlay" id="glitch"></div>
-  
-  <!-- Icons -->
   <div class="icon-grid">
-    <div class="app-icon" onmousedown="ENG.openApp('files')"><div>📁</div><span>Files</span></div>
-    <div class="app-icon" onmousedown="ENG.openApp('scrcpy')"><div>📱</div><span>Scrcpy</span></div>
-    <div class="app-icon" onmousedown="ENG.openApp('terminal')"><div>💻</div><span>Terminal</span></div>
-    <div class="app-icon" onmousedown="ENG.openApp('browser')"><div>🌍</div><span>Tor</span></div>
-    <div class="app-icon" onmousedown="ENG.openApp('notes')"><div>📝</div><span>Notes</span></div>
+    <div class="icon" onclick="APP.open('pc')"><div>💻</div><span>This PC</span></div>
+    <div class="icon" onclick="APP.open('notes')"><div>📝</div><span>Case Notes</span></div>
+    <div class="icon" onclick="APP.open('terminal')"><div>📟</div><span>Terminal</span></div>
+    <div class="icon" onclick="APP.open('scrcpy')"><div>📱</div><span>Scrcpy</span></div>
+    <div class="icon" onclick="APP.open('browser')"><div>🧅</div><span>Tor</span></div>
+    <div class="icon" onclick="APP.open('gallery')"><div>📷</div><span>Evidence</span></div>
+    <div class="icon" onclick="APP.open('trash')"><div>🗑️</div><span>Trash</span></div>
+    <div class="icon" onclick="APP.open('music')"><div>🎵</div><span>Ambience</span></div>
   </div>
 
-  <!-- Windows Area -->
-  <div id="window-area"></div>
+  <div id="win-layer"></div>
 
-  <!-- Taskbar -->
   <div id="taskbar">
-    <div id="start-btn">🪟</div>
-    <div id="running-apps" style="display:flex;"></div>
-    <div id="clock">00:00 AM</div>
+    <div id="start">❖</div>
+    <div id="dock" style="display:flex;"></div>
+    <div id="clock">00:00</div>
   </div>
 </div>
 
-<!-- ========================================== -->
-<!-- PART 1: CORE ENGINE (Input, GUI, Audio) -->
-<!-- ========================================== -->
+<!-- PART 1: SYSTEM ENGINE (UI, Audio, Window Management) -->
 <script>
-const ENG = {
-  wins: [],
-  zIndex: 100,
-  audioCtx: null,
-  isDragging: false,
-  dragOffset: {x:0, y:0},
-  dragEl: null,
-
-  init: function() {
-    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    this.updateClock();
-    setInterval(() => this.updateClock(), 1000);
-    // Unified Input Listener
-    document.addEventListener('mousemove', this.moveCursor);
-    document.addEventListener('touchmove', this.moveCursor, {passive: false});
-    document.addEventListener('mouseup', this.stopDrag);
-    document.addEventListener('touchend', this.stopDrag);
-    
-    // Play ambient drone
+const SYS = {
+  z: 100, wins: [], audio: null, osc: null,
+  
+  boot: function() {
+    document.getElementById('overlay').style.display = 'none';
+    this.audio = new (window.AudioContext || window.webkitAudioContext)();
     this.playDrone();
+    this.clockLoop();
+    // Start Story
+    setTimeout(() => APP.open('notes'), 1000);
+    // Global Inputs
+    window.addEventListener('mouseup', () => this.stopDrag());
+    window.addEventListener('touchend', () => this.stopDrag());
+    window.addEventListener('mousemove', (e) => this.drag(e));
+    window.addEventListener('touchmove', (e) => this.drag(e));
   },
 
-  moveCursor: function(e) {
-    let cx, cy;
-    if(e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } 
-    else { cx = e.clientX; cy = e.clientY; }
-    
-    const cursor = document.getElementById('cursor');
-    cursor.style.left = cx + 'px';
-    cursor.style.top = cy + 'px';
-
-    if(ENG.isDragging && ENG.dragEl) {
-      e.preventDefault(); // Prevent scroll on mobile
-      ENG.dragEl.style.left = (cx - ENG.dragOffset.x) + 'px';
-      ENG.dragEl.style.top = (cy - ENG.dragOffset.y) + 'px';
-    }
-  },
-
-  createWindow: function(id, title, contentHTML, w=400, h=300) {
-    if(document.getElementById('win-'+id)) return this.focusWindow(id);
-    
+  createWin: function(id, title, html, w=500, h=400) {
+    if(document.getElementById('w-'+id)) return this.focus(id);
     const win = document.createElement('div');
-    win.className = 'window';
-    win.id = 'win-'+id;
-    win.style.width = w+'px';
-    win.style.height = h+'px';
-    win.style.left = (50 + (this.wins.length * 20)) + 'px';
-    win.style.top = (50 + (this.wins.length * 20)) + 'px';
-    win.style.zIndex = ++this.zIndex;
+    win.className = 'window'; win.id = 'w-'+id;
+    win.style.width = w+'px'; win.style.height = h+'px';
+    win.style.zIndex = ++this.z;
+    // Random spawn pos
+    win.style.left = (Math.random()*50 + 50) + 'px';
+    win.style.top = (Math.random()*50 + 50) + 'px';
     
     win.innerHTML = `
-      <div class="title-bar" onmousedown="ENG.startDrag(event, '${win.id}')" ontouchstart="ENG.startDrag(event, '${win.id}')">
-        <span>${title}</span>
-        <div class="win-controls">
-          <div class="min-btn"></div>
-          <div class="max-btn"></div>
-          <div class="close-btn" onmousedown="ENG.closeWindow('${id}')" ontouchstart="ENG.closeWindow('${id}')"></div>
+      <div class="title-bar" onmousedown="SYS.startDrag(event, '${id}')" ontouchstart="SYS.startDrag(event, '${id}')">
+        <div style="display:flex;align-items:center;gap:10px;"><span>${title}</span></div>
+        <div class="controls">
+          <div class="dot min"></div>
+          <div class="dot max"></div>
+          <div class="dot cls" onclick="SYS.close('${id}')"></div>
         </div>
       </div>
-      <div class="win-content">${contentHTML}</div>
+      <div class="content">${html}</div>
     `;
-
-    // Focus listener
-    win.addEventListener('mousedown', () => ENG.focusWindow(id));
-    win.addEventListener('touchstart', () => ENG.focusWindow(id));
-
-    document.getElementById('window-area').appendChild(win);
+    
+    win.onmousedown = () => this.focus(id);
+    document.getElementById('win-layer').appendChild(win);
     this.wins.push(id);
-    this.addTaskbarItem(id);
-    this.playSfx('open');
+    this.addDock(id);
   },
 
-  closeWindow: function(id) {
-    const el = document.getElementById('win-'+id);
-    if(el) el.remove();
-    this.wins = this.wins.filter(w => w !== id);
-    const task = document.getElementById('task-'+id);
-    if(task) task.remove();
+  close: function(id) {
+    document.getElementById('w-'+id).remove();
+    document.getElementById('t-'+id).remove();
+    this.wins = this.wins.filter(x => x !== id);
   },
 
-  focusWindow: function(id) {
-    const el = document.getElementById('win-'+id);
-    if(el) el.style.zIndex = ++this.zIndex;
-    // Highlight taskbar
-    document.querySelectorAll('.task-icon').forEach(t => t.classList.remove('active'));
-    const task = document.getElementById('task-'+id);
-    if(task) task.classList.add('active');
+  focus: function(id) {
+    const el = document.getElementById('w-'+id);
+    if(el) el.style.zIndex = ++this.z;
+    document.querySelectorAll('.task').forEach(t => t.classList.remove('active'));
+    const t = document.getElementById('t-'+id);
+    if(t) t.classList.add('active');
   },
 
+  addDock: function(id) {
+    const d = document.getElementById('dock');
+    const t = document.createElement('div');
+    t.className = 'task active'; t.id = 't-'+id;
+    t.innerText = id[0].toUpperCase();
+    t.onclick = () => this.focus(id);
+    d.appendChild(t);
+  },
+
+  // Drag Logic
+  dragEl: null, offX:0, offY:0,
   startDrag: function(e, id) {
-    this.isDragging = true;
-    this.dragEl = document.getElementById(id);
-    this.focusWindow(id.replace('win-', ''));
-    let cx = e.touches ? e.touches[0].clientX : e.clientX;
-    let cy = e.touches ? e.touches[0].clientY : e.clientY;
-    let rect = this.dragEl.getBoundingClientRect();
-    this.dragOffset = { x: cx - rect.left, y: cy - rect.top };
+    this.dragEl = document.getElementById('w-'+id);
+    this.focus(id);
+    const c = e.touches ? e.touches[0] : e;
+    const r = this.dragEl.getBoundingClientRect();
+    this.offX = c.clientX - r.left; this.offY = c.clientY - r.top;
+  },
+  drag: function(e) {
+    if(!this.dragEl) return;
+    e.preventDefault();
+    const c = e.touches ? e.touches[0] : e;
+    this.dragEl.style.left = (c.clientX - this.offX) + 'px';
+    this.dragEl.style.top = (c.clientY - this.offY) + 'px';
+  },
+  stopDrag: function() { this.dragEl = null; },
+
+  clockLoop: function() {
+    const d = new Date();
+    document.getElementById('clock').innerText = d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
+    setTimeout(() => this.clockLoop(), 1000);
   },
 
-  stopDrag: function() {
-    ENG.isDragging = false;
-    ENG.dragEl = null;
-  },
-
-  addTaskbarItem: function(id) {
-    const bar = document.getElementById('running-apps');
-    const item = document.createElement('div');
-    item.className = 'task-icon active';
-    item.id = 'task-'+id;
-    item.innerHTML = id.charAt(0).toUpperCase();
-    item.onclick = () => ENG.focusWindow(id);
-    bar.appendChild(item);
-  },
-
-  updateClock: function() {
-    const now = new Date();
-    document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-  },
-
-  // --- AUDIO ENGINE (Web Audio API) ---
-  playSfx: function(type) {
-    if(!this.audioCtx) return;
-    const osc = this.audioCtx.createOscillator();
-    const gain = this.audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
-
-    if(type === 'open') {
-      osc.type = 'sine'; osc.frequency.setValueAtTime(600, this.audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.1, this.audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.1);
-      osc.start(); osc.stop(this.audioCtx.currentTime + 0.1);
-    } else if (type === 'error') {
-      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, this.audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.2, this.audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.3);
-      osc.start(); osc.stop(this.audioCtx.currentTime + 0.3);
-    } else if (type === 'jumpscare') {
-      osc.type = 'sawtooth'; 
-      osc.frequency.setValueAtTime(100, this.audioCtx.currentTime);
-      osc.frequency.linearRampToValueAtTime(800, this.audioCtx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.5, this.audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 1.5);
-      osc.start(); osc.stop(this.audioCtx.currentTime + 1.5);
-      // Screen Shake
-      document.body.style.animation = "shake 0.5s";
-      setTimeout(() => document.body.style.animation = "", 500);
-    }
-  },
-
+  // Procedural Horror Audio
   playDrone: function() {
-    // Low frequency background horror hum
-    const osc = this.audioCtx.createOscillator();
-    const gain = this.audioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = 55;
-    gain.gain.value = 0.02;
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
-    osc.start();
+    if(!this.audio) return;
+    const o = this.audio.createOscillator();
+    const g = this.audio.createGain();
+    o.type = 'sawtooth'; o.frequency.value = 50;
+    // Lowpass filter for "muffled" sound
+    const f = this.audio.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = 100;
+    
+    o.connect(f); f.connect(g); g.connect(this.audio.destination);
+    g.gain.value = 0.15;
+    o.start();
+    this.osc = o; // Keep ref to stop
+  },
+  
+  sfx: function(type) {
+    if(!this.audio) return;
+    const o = this.audio.createOscillator();
+    const g = this.audio.createGain();
+    o.connect(g); g.connect(this.audio.destination);
+    if(type=='err') { o.type='sawtooth'; o.frequency.value=150; g.gain.exponentialRampToValueAtTime(0.01, this.audio.currentTime+0.3); }
+    if(type=='scare') { o.type='square'; o.frequency.value=600; o.frequency.linearRampToValueAtTime(100, this.audio.currentTime+0.5); g.gain.value=0.5; }
+    o.start(); o.stop(this.audio.currentTime + (type=='scare'?0.5:0.3));
   }
 };
 </script>
 
-<!-- ========================================== -->
-<!-- PART 2: GAME LOGIC (Apps, Puzzles, Horror) -->
-<!-- ========================================== -->
+<!-- PART 2: GAMEPLAY LOGIC & APPS -->
 <script>
-// Game State
-let GAME = {
-  horrorLevel: 0,
-  scrcpyUnlocked: false,
-  gpsFound: false,
-  timer: 0,
-  
-  start: function() {
-    ENG.init();
-    // Start Game Loop
-    setInterval(() => {
-      this.timer++;
-      this.checkHorrorEvents();
-    }, 1000);
+const GAME = {
+  stage: 0,
+  password: 'death', // The answer to the puzzle
+  phoneUnlocked: false,
+  gps: false
+};
+
+const APP = {
+  open: function(name) {
+    switch(name) {
+      case 'notes':
+        SYS.createWin('notes', 'Case #992 Notes', `
+          <div style="padding:15px; color:#ddd; line-height:1.6;">
+            <h3>Target: The Night Stalker</h3>
+            <p>1. Victim's laptop secured. Need to find where he hid the body.</p>
+            <p>2. Phone is locked. I need to use <b>Terminal</b> to force a connection.</p>
+            <p>3. Password hint is somewhere in the <b>Trash</b> bin.</p>
+            <hr>
+            <p style="color:red">WARNING: He is watching the network.</p>
+          </div>
+        `);
+        break;
+        
+      case 'trash':
+        SYS.createWin('trash', 'Recycle Bin', `
+          <div class="file-grid">
+            <div class="file-item"><div>📄</div>scan.pdf</div>
+            <div class="file-item" onclick="alert('File Corrupted')"><div>⚠️</div>virus.exe</div>
+            <div class="file-item" onclick="APP.showHint()"><div>📝</div>pass_hint.txt</div>
+          </div>
+        `);
+        break;
+
+      case 'pc':
+        SYS.createWin('pc', 'This PC', `
+          <div class="file-grid">
+            <div class="file-item"><div>💾</div>Local (C:)</div>
+            <div class="file-item" onclick="APP.open('gallery')"><div>📁</div>Pictures</div>
+            <div class="file-item"><div>📁</div>System</div>
+          </div>
+        `);
+        break;
+
+      case 'gallery':
+        SYS.createWin('gallery', 'Evidence Viewer', `
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; padding:10px;">
+            <div style="background:#222; height:100px; display:flex; align-items:center; justify-content:center;">No Signal</div>
+            <div style="background:#333; height:100px;"></div>
+            <div style="background:#111; grid-column:span 2; height:150px; display:flex; align-items:center; justify-content:center; color:#555;">
+              ${GAME.gps ? '<img src="https://maps.googleapis.com/maps/api/staticmap?center=40.714728,-73.998672&zoom=12&size=400x150&sensor=false&key=YOUR_KEY_HERE" alt="Lat: 66.6, Lon: 66.6" style="width:100%; opacity:0.6">' : 'MAP DATA MISSING'}
+            </div>
+          </div>
+        `);
+        break;
+
+      case 'terminal':
+        SYS.createWin('terminal', 'CMD.exe (Administrator)', `
+          <div class="term-body" onclick="document.getElementById('in').focus()">
+            <div>Microsoft Windows [Version 10.0.19045]<br>(c) Microsoft Corporation.<br><br>Type 'help' for commands.</div>
+            <div id="out"></div>
+            <div style="display:flex;">
+              <span>C:\\Users\\Admin&gt;&nbsp;</span>
+              <span id="txt"></span>
+              <span style="animation:glitch 1s infinite">_</span>
+            </div>
+            <input id="in" class="term-input" oninput="APP.termType(this)" onkeydown="APP.termEnter(event)">
+          </div>
+        `, 600, 350);
+        break;
+
+      case 'scrcpy':
+        let content = GAME.phoneUnlocked ? `
+          <div class="phone-wrap">
+            <div class="phone-header"><span>LTE</span><span>11:34 PM</span></div>
+            <div class="msg-list">
+              <div class="msg in">The job is done.</div>
+              <div class="msg out">Did you clean up?</div>
+              <div class="msg in">Yeah. I buried it at the old mill.</div>
+              <div class="msg in">Coords sent to secure server.</div>
+              <div class="msg out" style="background:#555; cursor:pointer;" onclick="APP.foundGPS()">
+                <div>📍 <b>Shared Location</b></div>
+                <div style="font-size:10px; opacity:0.7">Click to download</div>
+              </div>
+            </div>
+            <div style="padding:15px; background:#222; text-align:center;">Type message...</div>
+          </div>
+        ` : `
+          <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000; color:red;">
+            <div style="font-size:40px;">🔒</div>
+            <h3>DEVICE LOCKED</h3>
+            <p>ADB Debugging Unauthorized</p>
+            <p style="color:#666">Use Terminal to bridge connection.</p>
+          </div>
+        `;
+        SYS.createWin('scrcpy', 'Pixel 6 - Scrcpy', content, 320, 580);
+        break;
+
+      case 'browser':
+        SYS.createWin('browser', 'Tor Browser', `
+          <div style="background:#333; padding:5px; color:#fff; font-size:12px;">URL: http://hidden-service.onion</div>
+          <div style="padding:20px; color:#ccc;">
+            <h1>Dark Net Search</h1>
+            ${GAME.gps ? '<h2 style="color:red">LOCATION CONFIRMED: THE OLD MILL</h2><p>Dispatching units...</p>' : '<p>Waiting for GPS coordinates...</p>'}
+          </div>
+        `);
+        break;
+        
+      case 'music':
+        SYS.createWin('music', 'Media Player', `
+          <div style="text-align:center; padding:20px;">
+            <h3>Ambient_Track_01.mp3</h3>
+            <div style="height:4px; background:#333; margin:20px 0;"><div style="width:30%; height:100%; background:var(--accent);"></div></div>
+            <button onclick="SYS.playDrone()">▶ PLAY</button>
+            <button onclick="if(SYS.osc) SYS.osc.stop()">⏹ STOP</button>
+          </div>
+        `, 300, 200);
+        break;
+    }
   },
 
-  checkHorrorEvents: function() {
-    // Progressive Horror
-    if(this.timer === 60) ENG.playSfx('jumpscare'); 
-    if(this.timer > 300 && Math.random() < 0.1) {
-      document.getElementById('glitch').style.display = 'block';
-      setTimeout(() => document.getElementById('glitch').style.display = 'none', 100);
-      ENG.playSfx('error');
+  // GAME EVENTS
+  showHint: function() {
+    alert("pass_hint.txt: \n\n'The password is what comes for us all.'\n(5 letters, lowercase)");
+  },
+
+  foundGPS: function() {
+    GAME.gps = true;
+    SYS.sfx('scare'); // Reward sound
+    alert("DOWNLOADING GPS DATA...");
+    setTimeout(() => {
+      alert("DOWNLOAD COMPLETE.\nCheck 'Evidence' or 'Browser'.");
+      APP.triggerHorror();
+    }, 1500);
+  },
+
+  triggerHorror: function() {
+    // Endgame visuals
+    document.getElementById('desktop').style.filter = "hue-rotate(90deg) contrast(150%)";
+    SYS.sfx('scare');
+    setTimeout(() => alert("THEY KNOW YOU ARE HERE."), 2000);
+  },
+
+  // TERMINAL LOGIC
+  cmdHistory: [],
+  termType: function(el) {
+    document.getElementById('txt').innerText = el.value;
+  },
+  termEnter: function(e) {
+    if(e.key !== 'Enter') return;
+    const val = e.target.value.toLowerCase().trim();
+    const out = document.getElementById('out');
+    out.innerHTML += `<div>C:\\Users\\Admin> ${val}</div>`;
+    e.target.value = ''; document.getElementById('txt').innerText = '';
+
+    if(val === 'help') {
+      out.innerHTML += `<div style="color:#aaa">COMMANDS: help, dir, adb connect, exit</div>`;
+    } 
+    else if(val === 'dir') {
+       out.innerHTML += `<div>log.txt<br>system32<br>personal</div>`;
     }
-    // Random Cursor Twitch
-    if(this.horrorLevel > 2 && Math.random() < 0.05) {
-      document.getElementById('cursor').style.border = "2px solid red";
-      setTimeout(()=> document.getElementById('cursor').style.border = "2px solid #00ff41", 200);
+    else if(val === 'adb connect') {
+      out.innerHTML += `<div style="color:yellow">Input Admin Password:</div>`;
+      GAME.awaitingPass = true;
     }
-  }
-};
-
-// Bridge between Engine and Game Logic
-ENG.openApp = function(app) {
-  if(app === 'files') {
-    ENG.createWindow('files', 'File Explorer', `
-      <div style="display:grid; grid-template-columns:1fr 1fr;">
-        <div onclick="alert('Access Denied')" style="padding:10px; cursor:pointer;">📁 System</div>
-        <div onclick="GAME.openLog()" style="padding:10px; cursor:pointer;">📄 <b>log_capture.txt</b></div>
-        <div style="padding:10px; opacity:0.5;">📁 Images (Corrupted)</div>
-      </div>
-    `);
-  } 
-  else if (app === 'terminal') {
-    ENG.createWindow('terminal', 'CMD.exe', `
-      <div id="term-out" class="terminal-text">Microsoft Windows [Version 11.0.22]<br>(c) Microsoft Corporation.<br><br>C:\\Users\\Admin>_</div>
-      <input type="text" id="term-in" style="width:100%; background:transparent; border:none; color:transparent; position:absolute; top:0;" autofocus onkeydown="GAME.handleTerm(event)">
-    `, 500, 350);
-  }
-  else if (app === 'scrcpy') {
-    let content = GAME.scrcpyUnlocked 
-      ? GAME.getPhoneHTML() 
-      : `<div style="text-align:center; padding-top:50px; color:#f00;">ERROR: DEVICE LOCKED<br>ADB Debugging unauthorized.<br><br>Connect via Terminal.</div>`;
-    ENG.createWindow('scrcpy', 'SCRCPY - Pixel 6 [Serial: 666]', content, 320, 550);
-  }
-  else if (app === 'browser') {
-    ENG.createWindow('browser', 'Tor Browser', `
-      <div style="background:#333; padding:5px; margin-bottom:10px;">URL: http://dark.onion/tracker</div>
-      <div style="color:#ddd; padding:10px;">
-        <h2>Missing Persons DB</h2>
-        <p>Searching for signal...</p>
-        ${GAME.gpsFound ? '<p style="color:#0f0; font-weight:bold;">SIGNAL FOUND: LAT 44.2, LON -12.1<br>Sending Police...</p>' : '<p style="color:red">No GPS Data found.</p>'}
-      </div>
-    `);
-  }
-  else if (app === 'notes') {
-    ENG.createWindow('notes', 'Notepad', `<textarea style="width:100%; height:100%; background:transparent; border:none; color:#fff; font-family:monospace;">TO DO LIST:\n1. Fix the server\n2. The password is in the log file\n3. Don't look behind you.</textarea>`);
-  }
-};
-
-GAME.openLog = function() {
-  ENG.createWindow('log', 'log_capture.txt', `
-    <pre>
-    [INFO] Server started
-    [WARN] Unauthorised access attempt
-    [INFO] ADB Bridge connected on port 5555
-    [INFO] Password reset to: <b>GHOST_PROTOCOL</b>
-    [ERR] Camera signal lost...
-    </pre>
-  `);
-};
-
-GAME.handleTerm = function(e) {
-  if(e.key === 'Enter') {
-    const input = e.target.value.toLowerCase();
-    const output = document.getElementById('term-out');
-    output.innerHTML += `<br>> ${e.target.value}`;
-    e.target.value = ''; // clear hidden input
-    
-    // Terminal Logic
-    if(input === 'help') {
-      output.innerHTML += `<br>Available commands: help, connect, adb devices, exit`;
-    } else if (input.includes('connect')) {
-      if(input.includes('ghost_protocol')) {
-        output.innerHTML += `<br><span style="color:#0f0">ACCESS GRANTED.</span><br>Starting ADB daemon...<br>Device connected.`;
-        GAME.scrcpyUnlocked = true;
-        ENG.playSfx('open');
+    else if(GAME.awaitingPass) {
+      if(val === GAME.password) {
+        out.innerHTML += `<div style="color:#0f0">ACCESS GRANTED.<br>Bridge established.</div>`;
+        GAME.phoneUnlocked = true;
+        GAME.awaitingPass = false;
+        SYS.sfx('scare'); // Positive feedback sound actually
+        setTimeout(() => {
+            SYS.close('scrcpy');
+            APP.open('scrcpy'); // Reload app
+        }, 1000);
       } else {
-        output.innerHTML += `<br><span style="color:red">ACCESS DENIED. Password required.</span>`;
-        ENG.playSfx('error');
+        out.innerHTML += `<div style="color:red">ACCESS DENIED.</div>`;
+        SYS.sfx('err');
       }
-    } else {
-      output.innerHTML += `<br>Command not recognized.`;
     }
-    // Auto scroll
-    output.parentElement.scrollTop = output.parentElement.scrollHeight;
+    else {
+      out.innerHTML += `<div style="color:red">Bad command or file name.</div>`;
+    }
   }
 };
-
-GAME.getPhoneHTML = function() {
-  return `
-    <div class="phone-frame">
-      <div style="background:#222; padding:10px; color:#fff; font-size:12px; display:flex; justify-content:space-between;">
-        <span>11:34 PM</span><span>🔋 13%</span>
-      </div>
-      <div class="phone-screen">
-        <div style="text-align:center; margin-bottom:20px; color:#555;">Today</div>
-        <div class="chat-bubble">Where are you?</div>
-        <div class="chat-bubble chat-sent">Just finished the job.</div>
-        <div class="chat-bubble">Did you hide the body?</div>
-        <div class="chat-bubble chat-sent">Yeah, sent coords to the cloud.</div>
-        <div class="chat-bubble chat-sent" style="background:#444; cursor:pointer;" onclick="GAME.hackGPS()">
-          📁 <b>GPS_DATA.xml</b><br><small>(Tap to download)</small>
-        </div>
-        <div id="gps-status"></div>
-      </div>
-      <div style="height:40px; background:#000; display:flex; justify-content:center; align-items:center; gap:20px;">
-        <div style="width:20px; height:20px; border:1px solid #555; border-radius:4px;"></div>
-        <div style="width:20px; height:20px; border:1px solid #555; border-radius:50%;"></div>
-      </div>
-    </div>
-  `;
-};
-
-GAME.hackGPS = function() {
-  document.getElementById('gps-status').innerHTML = '<span style="color:#0f0">Downloading...</span>';
-  setTimeout(() => {
-    GAME.gpsFound = true;
-    ENG.playSfx('open');
-    alert("GPS DATA ACQUIRED. Check Browser.");
-    GAME.horrorLevel = 5; // Escalate horror
-    ENG.playSfx('jumpscare');
-  }, 1000);
-};
-
-// Start Sequence
-function startGame() {
-  document.getElementById('start-overlay').style.display = 'none';
-  GAME.start();
-}
-
-// Mobile Keyboard Helper for Terminal
-// When clicking terminal window, focus the hidden input
-document.addEventListener('click', (e) => {
-  if(e.target.id === 'term-out' || e.target.closest('#term-out')) {
-    document.getElementById('term-in').focus();
-  }
-});
-
-// CSS Animation for Shake
-const styleSheet = document.createElement("style");
-styleSheet.innerText = `
-  @keyframes shake {
-    0% { transform: translate(1px, 1px) rotate(0deg); }
-    10% { transform: translate(-1px, -2px) rotate(-1deg); }
-    20% { transform: translate(-3px, 0px) rotate(1deg); }
-    30% { transform: translate(3px, 2px) rotate(0deg); }
-    40% { transform: translate(1px, -1px) rotate(1deg); }
-    50% { transform: translate(-1px, 2px) rotate(-1deg); }
-    60% { transform: translate(-3px, 1px) rotate(0deg); }
-    70% { transform: translate(3px, 1px) rotate(-1deg); }
-    80% { transform: translate(-1px, -1px) rotate(1deg); }
-    90% { transform: translate(1px, 2px) rotate(0deg); }
-    100% { transform: translate(1px, -2px) rotate(-1deg); }
-  }
-`;
-document.head.appendChild(styleSheet);
 </script>
 </body>
 </html>
