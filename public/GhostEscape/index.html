@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ghost Escape: Nightmare Chase</title>
+    <style>
+        body { margin: 0; background: #050005; overflow: hidden; font-family: 'Courier New', monospace; color: white; }
+        canvas { display: block; margin: auto; background: #000; border-bottom: 5px solid #200; }
+        #ui { position: absolute; top: 15px; left: 15px; font-size: 18px; text-shadow: 2px 2px #000; pointer-events: none; }
+        .controls { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-around; padding: 0 10px; box-sizing: border-box; }
+        .btn { width: 70px; height: 70px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; user-select: none; touch-action: manipulation; }
+        .btn:active { background: rgba(255,0,0,0.3); }
+        @media (min-width: 800px) { .controls { display: none; } }
+    </style>
+</head>
+<body>
+    <div id="ui">Souls: 0 | DASH READY</div>
+    <canvas id="gameCanvas"></canvas>
+    <div class="controls">
+        <div style="display:flex; gap: 20px;">
+            <div class="btn" id="leftBtn">←</div>
+            <div class="btn" id="rightBtn">→</div>
+        </div>
+        <div style="display:flex; gap: 20px;">
+            <div class="btn" id="dashBtn">⚡</div>
+            <div class="btn" id="jumpBtn">↑</div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+      </html>
