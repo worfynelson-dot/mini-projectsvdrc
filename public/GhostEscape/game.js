@@ -1,44 +1,77 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreEl = document.getElementById('ui');
+const loadBar = document.getElementById('load-bar');
+const statusText = document.getElementById('status');
+const startBtn = document.getElementById('start-btn');
+const loadingScreen = document.getElementById('loading-screen');
 
 canvas.width = 800;
 canvas.height = 400;
 
-// Assets
-const GHOST_IMG = new Image(); GHOST_IMG.src = "https://mzpiu4p9ugnygfqo.public.blob.vercel-storage.com/assets0001A/cute_ghost";
-const BAD_1 = new Image(); BAD_1.src = "https://mzpiu4p9ugnygfqo.public.blob.vercel-storage.com/assets0001A/badghost_frame01";
-const BAD_2 = new Image(); BAD_2.src = "https://mzpiu4p9ugnygfqo.public.blob.vercel-storage.com/assets0001A/badghost_frame02";
+// Asset Loading Logic
+let loadedCount = 0;
+const assets = [
+    "https://mzpiu4p9ugnygfqo.public.blob.vercel-storage.com/assets0001A/cute_ghost",
+    "https://mzpiu4p9ugnygfqo.public.blob.vercel-storage.com/assets0001A/badghost_frame01",
+    "https://mzpiu4p9ugnygfqo.public.blob.vercel-storage.com/assets0001A/badghost_frame02"
+];
+const images = [];
+
+assets.forEach((src, index) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = src;
+    img.onload = () => {
+        loadedCount++;
+        let progress = (loadedCount / assets.length) * 100;
+        loadBar.style.width = progress + "%";
+        if (loadedCount === assets.length) {
+            statusText.innerText = "NIGHTMARE READY";
+            startBtn.style.display = "block";
+        }
+    };
+    images.push(img);
+});
+
+// Assignments for easy use
+const GHOST_IMG = images[0];
+const BAD_1 = images[1];
+const BAD_2 = images[2];
 
 // Game State
 let ghost = { x: 200, y: 200, w: 42, h: 42, vx: 0, vy: 0, jumped: false, dashCD: 0 };
-let chaser = { x: -150, y: 150, w: 90, h: 90, speed: 2.8 };
-let platforms = [], orbs = [], keys = {}, cameraX = 0, score = 0, frame = 0, active = true;
+let chaser = { x: -200, y: 150, w: 90, h: 90, speed: 2.8 };
+let platforms = [], orbs = [], keys = {}, cameraX = 0, score = 0, frame = 0, active = false;
 
-// Input Listeners
-window.onkeydown = (e) => { 
-    keys[e.code] = true; 
-    if(e.code === 'Shift') doDash(); 
+startBtn.onclick = () => {
+    loadingScreen.style.display = "none";
+    active = true;
+    init();
+    loop();
 };
+
+// Input handling
+window.onkeydown = (e) => { keys[e.code] = true; if(e.code === 'Shift') doDash(); };
 window.onkeyup = (e) => keys[e.code] = false;
 
-function doDash() {
-    if (ghost.dashCD <= 0) { ghost.vx = 16; ghost.dashCD = 80; }
-}
+function doDash() { if (ghost.dashCD <= 0 && active) { ghost.vx = 18; ghost.dashCD = 80; } }
 
 const bind = (id, key, func) => {
     const el = document.getElementById(id);
-    el.ontouchstart = (e) => { e.preventDefault(); if(func) func(); else keys[key] = true; };
-    el.ontouchend = (e) => { e.preventDefault(); keys[key] = false; };
+    el.addEventListener('touchstart', (e) => { 
+        e.preventDefault(); if(func) func(); else keys[key] = true; 
+    }, {passive: false});
+    el.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; }, {passive: false});
 };
 bind('leftBtn', 'ArrowLeft'); bind('rightBtn', 'ArrowRight'); bind('jumpBtn', 'Space'); bind('dashBtn', null, doDash);
 
 function init() {
     platforms = [{x: 0, y: 350, w: 1000, h: 60}];
-    for(let i=1; i<1000; i++) {
-        let px = i * 360, py = 150 + Math.random()*180, pw = 150 + Math.random()*150;
+    for(let i=1; i<500; i++) {
+        let px = i * 360, py = 160 + Math.random()*160, pw = 160 + Math.random()*140;
         platforms.push({x: px, y: py, w: pw, h: 40});
-        if(Math.random() > 0.4) orbs.push({x: px + pw/2, y: py - 60, collected: false});
+        if(Math.random() > 0.45) orbs.push({x: px + pw/2, y: py - 60, collected: false});
     }
 }
 
@@ -47,21 +80,12 @@ function update() {
     frame++;
     if(ghost.dashCD > 0) ghost.dashCD--;
 
-    // Gamepad
-    const gp = navigator.getGamepads()[0];
-    if(gp) {
-        keys['ArrowLeft'] = gp.axes[0] < -0.4 || gp.buttons[14].pressed;
-        keys['ArrowRight'] = gp.axes[0] > 0.4 || gp.buttons[15].pressed;
-        keys['Space'] = gp.buttons[0].pressed;
-        if(gp.buttons[2].pressed) doDash();
-    }
+    // Movement
+    if(keys['ArrowRight']) ghost.vx += 0.85;
+    if(keys['ArrowLeft']) ghost.vx -= 0.85;
+    if((keys['Space'] || keys['ArrowUp']) && !ghost.jumped) { ghost.vy = -12.5; ghost.jumped = true; }
 
-    // Physics
-    if(keys['ArrowRight']) ghost.vx += 0.8;
-    if(keys['ArrowLeft']) ghost.vx -= 0.8;
-    if((keys['Space'] || keys['ArrowUp']) && !ghost.jumped) { ghost.vy = -12; ghost.jumped = true; }
-
-    ghost.vx *= 0.91; ghost.vy += 0.55;
+    ghost.vx *= 0.92; ghost.vy += 0.58;
     ghost.x += ghost.vx; ghost.y += ghost.vy;
 
     // Collisions
@@ -72,28 +96,27 @@ function update() {
     });
 
     orbs.forEach(o => {
-        if(!o.collected && Math.hypot(ghost.x - o.x, ghost.y - o.y) < 40) { o.collected = true; score += 1000; }
+        if(!o.collected && Math.hypot(ghost.x - o.x, ghost.y - o.y) < 45) { o.collected = true; score += 1500; }
     });
 
-    // Chaser AI
-    chaser.speed = 3.0 + (score / 25000);
+    // Chaser logic
+    chaser.speed = 3.1 + (score / 22000);
     chaser.x += chaser.speed;
-    chaser.y += (ghost.y - chaser.y) * 0.03;
+    chaser.y += (ghost.y - chaser.y) * 0.04;
 
-    if(ghost.y > canvas.height + 50 || ghost.x < chaser.x + 35) {
+    if(ghost.y > canvas.height + 60 || ghost.x < chaser.x + 35) {
         active = false; alert("RECLAIMED BY THE VOID. Score: " + Math.floor(score)); location.reload();
     }
 
     cameraX = ghost.x - 200;
-    score += 1;
-    scoreEl.innerText = `Souls: ${Math.floor(score)} | DASH: ${ghost.dashCD > 0 ? 'CHARGING' : 'READY'}`;
+    score += 1.2;
+    scoreEl.innerText = `Souls: ${Math.floor(score)} | DASH: ${ghost.dashCD > 0 ? '...' : 'READY'}`;
 }
 
 function draw() {
-    ctx.fillStyle = "#0a000f"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#050008"; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.save(); ctx.translate(-cameraX, 0);
 
-    // Draw Orbs
     orbs.forEach(o => {
         if(!o.collected) {
             ctx.beginPath(); ctx.arc(o.x, o.y + Math.sin(frame/10)*8, 8, 0, Math.PI*2);
@@ -101,24 +124,23 @@ function draw() {
         }
     });
 
-    // Draw Platforms
-    ctx.shadowBlur = 0; ctx.fillStyle = "#151525";
-    platforms.forEach(p => { ctx.fillRect(p.x, p.y, p.w, p.h); ctx.strokeStyle="#334"; ctx.strokeRect(p.x, p.y, p.w, p.h); });
+    ctx.shadowBlur = 0; ctx.fillStyle = "#111120";
+    platforms.forEach(p => { ctx.fillRect(p.x, p.y, p.w, p.h); ctx.strokeRect(p.x, p.y, p.w, p.h); });
 
-    // Player
     ctx.drawImage(GHOST_IMG, ghost.x, ghost.y, ghost.w, ghost.h);
 
-    // Animated Bad Ghost
-    let badImg = (Math.floor(frame / 12) % 2 === 0) ? BAD_1 : BAD_2;
-    ctx.shadowBlur = 25; ctx.shadowColor = "red";
+    let badImg = (Math.floor(frame / 10) % 2 === 0) ? BAD_1 : BAD_2;
+    ctx.shadowBlur = 20; ctx.shadowColor = "red";
     ctx.drawImage(badImg, chaser.x, chaser.y, chaser.w, chaser.h);
 
-    // Trailing Fog
-    ctx.shadowBlur = 0; ctx.fillStyle = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = 0; ctx.fillStyle = "rgba(0,0,0,0.85)";
     ctx.fillRect(chaser.x - 1000, 0, 1000, canvas.height);
 
     ctx.restore();
-    requestAnimationFrame(() => { update(); draw(); });
 }
 
-init(); draw();
+function loop() {
+    update();
+    draw();
+    if(active) requestAnimationFrame(loop);
+            }
