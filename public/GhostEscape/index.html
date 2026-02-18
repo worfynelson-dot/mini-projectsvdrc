@@ -7,16 +7,36 @@
     <style>
         body { margin: 0; background: #050005; overflow: hidden; font-family: 'Courier New', monospace; color: white; }
         canvas { display: block; margin: auto; background: #000; border-bottom: 5px solid #200; }
-        #ui { position: absolute; top: 15px; left: 15px; font-size: 18px; text-shadow: 2px 2px #000; pointer-events: none; }
+        #ui { position: absolute; top: 15px; left: 15px; font-size: 18px; text-shadow: 2px 2px #000; pointer-events: none; z-index: 5; }
+        
+        /* Loading Screen Style */
+        #loading-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 10;
+        }
+        #load-bar-container { width: 200px; height: 10px; border: 1px solid #444; margin-top: 10px; }
+        #load-bar { width: 0%; height: 100%; background: #ff4d4d; transition: width 0.3s; }
+        #start-btn { 
+            display: none; padding: 15px 30px; background: #440000; color: white; 
+            border: 2px solid red; cursor: pointer; font-family: inherit; font-size: 20px;
+        }
+
         .controls { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-around; padding: 0 10px; box-sizing: border-box; }
         .btn { width: 70px; height: 70px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; user-select: none; touch-action: manipulation; }
-        .btn:active { background: rgba(255,0,0,0.3); }
         @media (min-width: 800px) { .controls { display: none; } }
     </style>
 </head>
 <body>
+    <div id="loading-screen">
+        <h2 id="status">WAKING UP THE SPIRITS...</h2>
+        <div id="load-bar-container"><div id="load-bar"></div></div>
+        <button id="start-btn">ENTER NIGHTMARE</button>
+    </div>
+
     <div id="ui">Souls: 0 | DASH READY</div>
     <canvas id="gameCanvas"></canvas>
+
     <div class="controls">
         <div style="display:flex; gap: 20px;">
             <div class="btn" id="leftBtn">←</div>
@@ -29,4 +49,4 @@
     </div>
     <script src="game.js"></script>
 </body>
-      </html>
+</html>
